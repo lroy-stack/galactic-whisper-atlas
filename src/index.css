@@ -2,41 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Star Wars Galaxy Map Design System - All colors MUST be HSL */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Space Deep Background */
+    --background: 220 25% 8%;
+    --foreground: 200 20% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Imperial Gold Accents */
+    --primary: 45 95% 55%;
+    --primary-foreground: 220 25% 8%;
+    --primary-glow: 45 100% 70%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Rebel Blue */
+    --secondary: 210 100% 45%;
+    --secondary-foreground: 200 20% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Neutral Space Grays */
+    --muted: 220 15% 15%;
+    --muted-foreground: 200 15% 70%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Jedi Green */
+    --accent: 120 100% 40%;
+    --accent-foreground: 200 20% 95%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Sith Red */
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 200 20% 95%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Interface Elements */
+    --card: 220 20% 12%;
+    --card-foreground: 200 20% 95%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 200 20% 95%;
+    --border: 220 15% 25%;
+    --input: 220 20% 18%;
+    --ring: 45 95% 55%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Space Effects */
+    --nebula-blue: 240 100% 80%;
+    --nebula-purple: 280 100% 70%;
+    --nebula-pink: 320 100% 75%;
+    --star-white: 60 100% 95%;
+    --hyperspace-blue: 200 100% 60%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Gradients */
+    --gradient-space: linear-gradient(135deg, hsl(220 25% 8%), hsl(240 30% 12%), hsl(220 25% 8%));
+    --gradient-imperial: linear-gradient(135deg, hsl(45 95% 55%), hsl(35 90% 50%));
+    --gradient-rebel: linear-gradient(135deg, hsl(210 100% 45%), hsl(200 100% 55%));
+    --gradient-nebula: linear-gradient(135deg, hsl(240 100% 80%), hsl(280 100% 70%), hsl(320 100% 75%));
+    --gradient-hyperspace: linear-gradient(45deg, hsl(200 100% 60%), hsl(180 100% 70%));
 
-    --radius: 0.5rem;
+    /* Shadows and Glows */
+    --shadow-space: 0 0 30px hsl(45 95% 55% / 0.3), 0 8px 32px hsl(220 25% 8% / 0.8);
+    --glow-imperial: 0 0 20px hsl(45 95% 55% / 0.6), 0 0 40px hsl(45 95% 55% / 0.3);
+    --glow-hyperspace: 0 0 20px hsl(200 100% 60% / 0.8), 0 0 40px hsl(200 100% 60% / 0.4);
+    --glow-nebula: 0 0 30px hsl(240 100% 80% / 0.6);
+
+    /* Animations */
+    --transition-space: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-hyperspace: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -101,5 +129,55 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background: var(--gradient-space);
+    overflow: hidden;
+  }
+
+  canvas {
+    outline: none;
+  }
+}
+
+@layer components {
+  .space-glow {
+    box-shadow: var(--glow-imperial);
+  }
+
+  .hyperspace-glow {
+    box-shadow: var(--glow-hyperspace);
+  }
+
+  .nebula-glow {
+    box-shadow: var(--glow-nebula);
+  }
+
+  .space-transition {
+    transition: var(--transition-space);
+  }
+
+  .hyperspace-transition {
+    transition: var(--transition-hyperspace);
+  }
+
+  .hologram-border {
+    border: 1px solid hsl(var(--primary) / 0.3);
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(8px);
+  }
+
+  .imperial-gradient {
+    background: var(--gradient-imperial);
+  }
+
+  .rebel-gradient {
+    background: var(--gradient-rebel);
+  }
+
+  .nebula-gradient {
+    background: var(--gradient-nebula);
+  }
+
+  .hyperspace-gradient {
+    background: var(--gradient-hyperspace);
   }
 }
