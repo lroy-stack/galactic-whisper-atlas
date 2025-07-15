@@ -217,7 +217,7 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
             enablePan
             enableZoom
             enableRotate
-            zoomSpeed={1.5}
+            zoomSpeed={0.75}
             panSpeed={2.0}
             rotateSpeed={0.4}
             maxDistance={3000000}
