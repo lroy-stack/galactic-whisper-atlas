@@ -104,6 +104,9 @@ export type Database = {
           allegiance: string | null
           classification: string | null
           climate: string | null
+          coordinate_x: number | null
+          coordinate_y: number | null
+          coordinate_z: number | null
           created_at: string
           description: string | null
           grid_coordinates: string | null
@@ -121,6 +124,9 @@ export type Database = {
           allegiance?: string | null
           classification?: string | null
           climate?: string | null
+          coordinate_x?: number | null
+          coordinate_y?: number | null
+          coordinate_z?: number | null
           created_at?: string
           description?: string | null
           grid_coordinates?: string | null
@@ -138,6 +144,9 @@ export type Database = {
           allegiance?: string | null
           classification?: string | null
           climate?: string | null
+          coordinate_x?: number | null
+          coordinate_y?: number | null
+          coordinate_z?: number | null
           created_at?: string
           description?: string | null
           grid_coordinates?: string | null
