@@ -7,17 +7,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Regional scaling configuration
+// Regional scaling configuration - EXPANDED for galactic scale
 const REGION_CONFIG = {
-  'Deep Core': { maxRadius: 15, priority: 1 },
-  'Core Worlds': { maxRadius: 25, priority: 2 },
-  'Colonies': { maxRadius: 50, priority: 3 },
-  'Inner Rim': { maxRadius: 50, priority: 3 },
-  'Expansion Region': { maxRadius: 100, priority: 4 },
-  'Mid Rim': { maxRadius: 100, priority: 4 },
-  'Outer Rim': { maxRadius: 180, priority: 5 },
-  'Wild Space': { maxRadius: 200, priority: 6 },
-  'Unknown Regions': { maxRadius: 200, priority: 6 }
+  'Deep Core': { maxRadius: 1500, priority: 1 },
+  'Core Worlds': { maxRadius: 2500, priority: 2 },
+  'Colonies': { maxRadius: 5000, priority: 3 },
+  'Inner Rim': { maxRadius: 5000, priority: 3 },
+  'Expansion Region': { maxRadius: 10000, priority: 4 },
+  'Mid Rim': { maxRadius: 10000, priority: 4 },
+  'Outer Rim': { maxRadius: 18000, priority: 5 },
+  'Wild Space': { maxRadius: 20000, priority: 6 },
+  'Unknown Regions': { maxRadius: 20000, priority: 6 }
 };
 
 interface System {
@@ -212,17 +212,12 @@ function rescaleSystems(
 ): System[] {
   const rescaled: System[] = [];
   
-  // Calculate scale factors to fit everything in -200 to +200 range
-  const rangeX = bounds.maxX - bounds.minX;
-  const rangeY = bounds.maxY - bounds.minY;
-  const rangeZ = bounds.maxZ - bounds.minZ;
+  // EXPANSION FACTOR: Multiply coordinates by 50x minimum
+  const expansionFactor = 50;
   
-  const maxRange = Math.max(rangeX, rangeY, rangeZ);
-  const globalScale = 400 / maxRange; // Map to -200 to +200 range
-
-  // Track used positions to ensure minimum separation
+  // Track used positions to ensure minimum separation (much larger now)
   const usedPositions: { x: number; y: number; z: number }[] = [];
-  const minSeparation = 2.5;
+  const minSeparation = 250; // Much larger separation for galactic scale
 
   for (const system of systems) {
     if (system.coordinate_x === null || system.coordinate_y === null || system.coordinate_z === null) {
@@ -234,10 +229,10 @@ function rescaleSystems(
     const regionConfig = REGION_CONFIG[system.region] || REGION_CONFIG['Unknown Regions'];
     const regionCenter = regionCenters[system.region] || galacticCenter;
 
-    // Normalize coordinates relative to galactic center
-    let x = (system.coordinate_x - galacticCenter.x) * globalScale;
-    let y = (system.coordinate_y - galacticCenter.y) * globalScale;
-    let z = (system.coordinate_z - galacticCenter.z) * globalScale;
+    // EXPAND coordinates by the expansion factor (50x minimum)
+    let x = (system.coordinate_x - galacticCenter.x) * expansionFactor;
+    let y = (system.coordinate_y - galacticCenter.y) * expansionFactor;
+    let z = (system.coordinate_z - galacticCenter.z) * expansionFactor;
 
     // Apply region-based scaling
     const distanceFromRegionCenter = Math.sqrt(
@@ -268,12 +263,12 @@ function rescaleSystems(
 
       if (!tooClose) break;
 
-      // Add small random offset to avoid collision
+      // Add larger random offset to avoid collision at galactic scale
       const angle = Math.random() * 2 * Math.PI;
-      const offset = minSeparation * (1 + Math.random() * 0.5);
+      const offset = minSeparation * (1 + Math.random() * 2);
       finalX = x + Math.cos(angle) * offset;
       finalY = y + Math.sin(angle) * offset;
-      finalZ = z + (Math.random() - 0.5) * offset;
+      finalZ = z + (Math.random() - 0.5) * offset * 2;
       
       attempts++;
     }
