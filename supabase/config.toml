@@ -34,3 +34,6 @@ port = 54323
 
 [functions.galactic-enrichment]
 verify_jwt = false
+
+[functions.complete-galactic-systems]
+verify_jwt = false
