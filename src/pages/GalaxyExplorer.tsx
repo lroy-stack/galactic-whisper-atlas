@@ -5,11 +5,12 @@ import AIAgent from '@/components/AIAgent';
 import SystemDataCompletion from '@/components/SystemDataCompletion';
 import CoordinateCalculation from '@/components/CoordinateCalculation';
 import CoordinateTest from '@/components/CoordinateTest';
+import { CoordinateRescaling } from '@/components/CoordinateRescaling';
 import SystemRelationshipAnalysis from '@/components/SystemRelationshipAnalysis';
 import { StarSystem } from '@/data/galaxyData';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Settings, GitBranch } from 'lucide-react';
+import { Settings, GitBranch, Scale } from 'lucide-react';
 import { useGalacticData } from '@/hooks/useGalacticData';
 
 export default function GalaxyExplorer() {
@@ -17,6 +18,7 @@ export default function GalaxyExplorer() {
   const [showDataCompletion, setShowDataCompletion] = useState(false);
   const [showCoordinateCalculation, setShowCoordinateCalculation] = useState(false);
   const [showCoordinateTest, setShowCoordinateTest] = useState(false);
+  const [showCoordinateRescaling, setShowCoordinateRescaling] = useState(false);
   const [showRelationshipAnalysis, setShowRelationshipAnalysis] = useState(false);
   const [showRelationships, setShowRelationships] = useState(false);
   
@@ -79,6 +81,15 @@ export default function GalaxyExplorer() {
                 >
                   <Settings className="h-4 w-4" />
                   Test Coordenadas
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCoordinateRescaling(!showCoordinateRescaling)}
+                  className="flex items-center gap-2"
+                >
+                  <Scale className="h-4 w-4" />
+                  Reescalar
                 </Button>
                 <Button
                   variant="outline"
@@ -156,6 +167,23 @@ export default function GalaxyExplorer() {
                 ✕
               </Button>
               <CoordinateTest />
+            </div>
+          </div>
+        )}
+
+        {/* Coordinate Rescaling Modal Overlay */}
+        {showCoordinateRescaling && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCoordinateRescaling(false)}
+                className="absolute -top-2 -right-2 z-30"
+              >
+                ✕
+              </Button>
+              <CoordinateRescaling />
             </div>
           </div>
         )}
