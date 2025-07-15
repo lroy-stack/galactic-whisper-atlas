@@ -46,3 +46,6 @@ verify_jwt = false
 
 [functions.test-relationship-system]
 verify_jwt = false
+
+[functions.establish-trade-routes]
+verify_jwt = false
