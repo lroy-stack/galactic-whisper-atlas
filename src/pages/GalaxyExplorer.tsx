@@ -5,6 +5,7 @@ import AIAgent from '@/components/AIAgent';
 import SystemDataCompletion from '@/components/SystemDataCompletion';
 import CoordinateCalculation from '@/components/CoordinateCalculation';
 import CoordinateTest from '@/components/CoordinateTest';
+import SystemRelationshipAnalysis from '@/components/SystemRelationshipAnalysis';
 import { StarSystem } from '@/data/galaxyData';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -14,6 +15,7 @@ export default function GalaxyExplorer() {
   const [showDataCompletion, setShowDataCompletion] = useState(false);
   const [showCoordinateCalculation, setShowCoordinateCalculation] = useState(false);
   const [showCoordinateTest, setShowCoordinateTest] = useState(false);
+  const [showRelationshipAnalysis, setShowRelationshipAnalysis] = useState(false);
 
   const handleSystemSelect = (system: StarSystem) => {
     setSelectedSystem(system);
@@ -72,6 +74,15 @@ export default function GalaxyExplorer() {
                   <Settings className="h-4 w-4" />
                   Test Coordenadas
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRelationshipAnalysis(!showRelationshipAnalysis)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Relaciones
+                </Button>
               </div>
             </div>
           </div>
@@ -124,6 +135,23 @@ export default function GalaxyExplorer() {
                 ✕
               </Button>
               <CoordinateTest />
+            </div>
+          </div>
+        )}
+
+        {/* Relationship Analysis Modal Overlay */}
+        {showRelationshipAnalysis && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRelationshipAnalysis(false)}
+                className="absolute -top-2 -right-2 z-30"
+              >
+                ✕
+              </Button>
+              <SystemRelationshipAnalysis />
             </div>
           </div>
         )}
