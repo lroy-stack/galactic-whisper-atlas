@@ -32,6 +32,73 @@ interface RelationshipAnalysis {
   cultural_exchange?: boolean;
 }
 
+// Valid enum values for relationship type
+const VALID_RELATIONSHIP_TYPES = ['allied', 'trade_partner', 'dependent', 'rival', 'neutral', 'enemy', 'vassal'] as const;
+
+// Mapping from possible OpenAI responses to valid enum values
+const RELATIONSHIP_TYPE_MAPPING: Record<string, typeof VALID_RELATIONSHIP_TYPES[number]> = {
+  'allied': 'allied',
+  'alliance': 'allied',
+  'ally': 'allied',
+  'allies': 'allied',
+  'trade_partner': 'trade_partner',
+  'trade_partners': 'trade_partner',
+  'trading': 'trade_partner',
+  'commercial': 'trade_partner',
+  'economic': 'trade_partner',
+  'dependent': 'dependent',
+  'dependency': 'dependent',
+  'vassal': 'vassal',
+  'tributary': 'vassal',
+  'subordinate': 'vassal',
+  'rival': 'rival',
+  'rivalry': 'rival',
+  'competitor': 'rival',
+  'competing': 'rival',
+  'enemy': 'enemy',
+  'enemies': 'enemy',
+  'hostile': 'enemy',
+  'warfare': 'enemy',
+  'conflict': 'enemy',
+  'neutral': 'neutral',
+  'none': 'neutral',
+  'no relationship': 'neutral'
+};
+
+function normalizeRelationshipType(type: string): typeof VALID_RELATIONSHIP_TYPES[number] {
+  const normalized = type.toLowerCase().trim();
+  return RELATIONSHIP_TYPE_MAPPING[normalized] || 'neutral';
+}
+
+function validateRelationshipData(data: any): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!data || typeof data !== 'object') {
+    errors.push('Response is not a valid object');
+    return { isValid: false, errors };
+  }
+  
+  if (!data.relationship_type) {
+    errors.push('Missing relationship_type');
+  }
+  
+  if (data.strength !== undefined) {
+    const strength = Number(data.strength);
+    if (isNaN(strength) || strength < 1 || strength > 10) {
+      errors.push('Strength must be a number between 1 and 10');
+    }
+  }
+  
+  if (data.trade_volume_credits !== undefined && data.trade_volume_credits !== null) {
+    const volume = Number(data.trade_volume_credits);
+    if (isNaN(volume) || volume < 0) {
+      errors.push('Trade volume must be a positive number or null');
+    }
+  }
+  
+  return { isValid: errors.length === 0, errors };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -211,18 +278,37 @@ Provide a JSON response with:
             cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
           }
           
-          const relationshipData = JSON.parse(cleanContent);
+          let relationshipData;
+          try {
+            relationshipData = JSON.parse(cleanContent);
+          } catch (jsonError) {
+            console.error(`❌ JSON parsing error for ${systemA.name} ↔ ${systemB.name}:`, jsonError);
+            console.error(`Raw content:`, cleanContent);
+            throw new Error(`Failed to parse AI response: ${jsonError.message}`);
+          }
 
-          // Validate and sanitize the relationship data
+          // Validate the parsed data
+          const validation = validateRelationshipData(relationshipData);
+          if (!validation.isValid) {
+            console.error(`❌ Validation errors for ${systemA.name} ↔ ${systemB.name}:`, validation.errors);
+            console.error(`Invalid data:`, relationshipData);
+            throw new Error(`Invalid relationship data: ${validation.errors.join(', ')}`);
+          }
+
+          // Normalize and sanitize the relationship data
+          const normalizedType = normalizeRelationshipType(relationshipData.relationship_type);
+          const sanitizedTradeVolume = relationshipData.trade_volume_credits ? 
+            Math.max(0, Number(relationshipData.trade_volume_credits)) : null;
+
           const relationship: RelationshipAnalysis = {
             system_a: systemA.id,
             system_b: systemB.id,
-            relationship_type: relationshipData.relationship_type.toLowerCase(),
-            strength: Math.max(1, Math.min(10, relationshipData.strength || 1)),
-            description: relationshipData.description || `Relationship between ${systemA.name} and ${systemB.name}`,
-            trade_volume_credits: relationshipData.trade_volume_credits || null,
-            military_cooperation: relationshipData.military_cooperation || false,
-            cultural_exchange: relationshipData.cultural_exchange || false
+            relationship_type: normalizedType,
+            strength: Math.max(1, Math.min(10, Number(relationshipData.strength) || 1)),
+            description: (relationshipData.description || `Relationship between ${systemA.name} and ${systemB.name}`).trim(),
+            trade_volume_credits: sanitizedTradeVolume,
+            military_cooperation: Boolean(relationshipData.military_cooperation),
+            cultural_exchange: Boolean(relationshipData.cultural_exchange)
           };
 
           batchRelationships.push(relationship);
