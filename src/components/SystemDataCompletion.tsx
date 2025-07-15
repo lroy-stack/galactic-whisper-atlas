@@ -26,6 +26,7 @@ export default function SystemDataCompletion() {
   const [totalSystems, setTotalSystems] = useState(0);
   const [completedSystems, setCompletedSystems] = useState(0);
   const [currentBatch, setCurrentBatch] = useState<CompletionResult | null>(null);
+  const [testResult, setTestResult] = useState<string | null>(null);
   const { toast } = useToast();
 
   const checkIncompleteCount = async () => {
@@ -129,6 +130,33 @@ export default function SystemDataCompletion() {
     setCurrentBatch(null);
   };
 
+  const testOpenAIConnection = async () => {
+    setTestResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-openai');
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        setTestResult(`✅ ${data.message}: "${data.response}"`);
+        toast({
+          title: "Conexión exitosa",
+          description: "OpenAI API está funcionando correctamente.",
+        });
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      const errorMsg = `❌ Error: ${error.message}`;
+      setTestResult(errorMsg);
+      toast({
+        variant: "destructive",
+        title: "Error de conexión",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -162,7 +190,21 @@ export default function SystemDataCompletion() {
           >
             Verificar Estado
           </Button>
+
+          <Button 
+            variant="secondary" 
+            onClick={testOpenAIConnection}
+            disabled={isRunning}
+          >
+            Probar OpenAI
+          </Button>
         </div>
+
+        {testResult && (
+          <div className="p-3 bg-muted rounded-md text-sm font-mono">
+            {testResult}
+          </div>
+        )}
 
         {totalSystems > 0 && (
           <div className="space-y-3">

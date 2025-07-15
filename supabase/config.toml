@@ -37,3 +37,6 @@ verify_jwt = false
 
 [functions.complete-galactic-systems]
 verify_jwt = false
+
+[functions.test-openai]
+verify_jwt = false
