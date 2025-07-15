@@ -58,19 +58,19 @@ serve(async (req) => {
 
     console.log('Starting coordinate rescaling process...');
 
-    // Fetch all systems with coordinates
-    const { data: systems, error: fetchError } = await supabase
+    // Get total count first
+    const { count: totalCount, error: countError } = await supabase
       .from('galactic_systems')
-      .select('id, name, region, coordinate_x, coordinate_y, coordinate_z, grid_coordinates')
+      .select('*', { count: 'exact', head: true })
       .not('coordinate_x', 'is', null)
       .not('coordinate_y', 'is', null)
       .not('coordinate_z', 'is', null);
 
-    if (fetchError) {
-      throw new Error(`Failed to fetch systems: ${fetchError.message}`);
+    if (countError) {
+      throw new Error(`Failed to count systems: ${countError.message}`);
     }
 
-    if (!systems || systems.length === 0) {
+    if (!totalCount || totalCount === 0) {
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'No systems with coordinates found' 
@@ -80,58 +80,128 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Processing ${systems.length} systems...`);
+    console.log(`Total systems to process: ${totalCount}`);
 
-    // Calculate current bounds
-    const bounds = calculateBounds(systems as System[]);
-    console.log('Current bounds:', bounds);
+    // Calculate bounds and region centers using all data (sampling approach for large datasets)
+    let bounds: Bounds;
+    let regionCenters: Record<string, RegionCenter>;
+    let galacticCenter: { x: number; y: number; z: number };
 
-    // Calculate region centers of mass
-    const regionCenters = calculateRegionCenters(systems as System[]);
-    console.log('Region centers:', regionCenters);
+    if (totalCount <= 2000) {
+      // For smaller datasets, process all at once
+      const { data: allSystems, error: fetchError } = await supabase
+        .from('galactic_systems')
+        .select('id, name, region, coordinate_x, coordinate_y, coordinate_z, grid_coordinates')
+        .not('coordinate_x', 'is', null)
+        .not('coordinate_y', 'is', null)
+        .not('coordinate_z', 'is', null);
 
-    // Find galactic center (Core Worlds center of mass)
-    const galacticCenter = regionCenters['Core Worlds'] || regionCenters['Deep Core'] || { x: 0, y: 0, z: 0 };
-    console.log('Galactic center:', galacticCenter);
-
-    // Rescale all systems
-    const rescaledSystems = rescaleSystems(systems as System[], bounds, galacticCenter, regionCenters);
-    console.log(`Rescaled ${rescaledSystems.length} systems`);
-
-    // Update systems in batches
-    const batchSize = 50;
-    let updatedCount = 0;
-
-    for (let i = 0; i < rescaledSystems.length; i += batchSize) {
-      const batch = rescaledSystems.slice(i, i + batchSize);
-      
-      for (const system of batch) {
-        const { error: updateError } = await supabase
-          .from('galactic_systems')
-          .update({
-            coordinate_x: system.coordinate_x,
-            coordinate_y: system.coordinate_y,
-            coordinate_z: system.coordinate_z,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', system.id);
-
-        if (updateError) {
-          console.error(`Failed to update system ${system.name}:`, updateError);
-        } else {
-          updatedCount++;
-        }
+      if (fetchError) {
+        throw new Error(`Failed to fetch systems: ${fetchError.message}`);
       }
 
-      console.log(`Updated batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(rescaledSystems.length / batchSize)}`);
+      bounds = calculateBounds(allSystems as System[]);
+      regionCenters = calculateRegionCenters(allSystems as System[]);
+      galacticCenter = regionCenters['Core Worlds'] || regionCenters['Deep Core'] || { x: 0, y: 0, z: 0 };
+    } else {
+      // For large datasets, use statistical sampling
+      console.log('Large dataset detected, using sampling approach...');
+      
+      // Sample 1000 systems for bounds and region calculations
+      const { data: sampleSystems, error: sampleError } = await supabase
+        .from('galactic_systems')
+        .select('id, name, region, coordinate_x, coordinate_y, coordinate_z, grid_coordinates')
+        .not('coordinate_x', 'is', null)
+        .not('coordinate_y', 'is', null)
+        .not('coordinate_z', 'is', null)
+        .limit(1000);
+
+      if (sampleError) {
+        throw new Error(`Failed to fetch sample systems: ${sampleError.message}`);
+      }
+
+      bounds = calculateBounds(sampleSystems as System[]);
+      regionCenters = calculateRegionCenters(sampleSystems as System[]);
+      galacticCenter = regionCenters['Core Worlds'] || regionCenters['Deep Core'] || { x: 0, y: 0, z: 0 };
+    }
+
+    console.log('Calculated bounds:', bounds);
+    console.log('Region centers:', regionCenters);
+    console.log('Galactic center:', galacticCenter);
+
+    // Process systems in batches
+    const processBatchSize = 800; // Fetch batch size
+    const updateBatchSize = 25; // Update batch size
+    let totalUpdated = 0;
+    let batchNumber = 0;
+
+    for (let offset = 0; offset < totalCount; offset += processBatchSize) {
+      batchNumber++;
+      console.log(`Processing batch ${batchNumber}/${Math.ceil(totalCount / processBatchSize)} (offset: ${offset})`);
+
+      // Fetch batch of systems
+      const { data: systemBatch, error: fetchError } = await supabase
+        .from('galactic_systems')
+        .select('id, name, region, coordinate_x, coordinate_y, coordinate_z, grid_coordinates')
+        .not('coordinate_x', 'is', null)
+        .not('coordinate_y', 'is', null)
+        .not('coordinate_z', 'is', null)
+        .range(offset, offset + processBatchSize - 1);
+
+      if (fetchError) {
+        console.error(`Failed to fetch batch at offset ${offset}:`, fetchError);
+        continue;
+      }
+
+      if (!systemBatch || systemBatch.length === 0) {
+        console.log(`No more systems at offset ${offset}`);
+        break;
+      }
+
+      // Rescale this batch
+      const rescaledBatch = rescaleSystems(systemBatch as System[], bounds, galacticCenter, regionCenters);
+      console.log(`Rescaled ${rescaledBatch.length} systems in batch ${batchNumber}`);
+
+      // Update in smaller sub-batches
+      for (let i = 0; i < rescaledBatch.length; i += updateBatchSize) {
+        const updateBatch = rescaledBatch.slice(i, i + updateBatchSize);
+        
+        for (const system of updateBatch) {
+          const { error: updateError } = await supabase
+            .from('galactic_systems')
+            .update({
+              coordinate_x: system.coordinate_x,
+              coordinate_y: system.coordinate_y,
+              coordinate_z: system.coordinate_z,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', system.id);
+
+          if (updateError) {
+            console.error(`Failed to update system ${system.name}:`, updateError);
+          } else {
+            totalUpdated++;
+          }
+        }
+
+        // Log progress for updates within this batch
+        const updateBatchNum = Math.floor(i / updateBatchSize) + 1;
+        const totalUpdateBatches = Math.ceil(rescaledBatch.length / updateBatchSize);
+        console.log(`Updated sub-batch ${updateBatchNum}/${totalUpdateBatches} in batch ${batchNumber}`);
+      }
+
+      console.log(`Completed batch ${batchNumber}, total updated so far: ${totalUpdated}`);
+      
+      // Add a small delay to prevent overwhelming the database
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     return new Response(JSON.stringify({
       success: true,
-      message: `Successfully rescaled coordinates for ${updatedCount} systems`,
+      message: `Successfully rescaled coordinates for ${totalUpdated} systems`,
       details: {
-        totalSystems: systems.length,
-        updatedSystems: updatedCount,
+        totalSystems: totalCount,
+        updatedSystems: totalUpdated,
         originalBounds: bounds,
         galacticCenter: galacticCenter,
         regionCenters: Object.keys(regionCenters)
