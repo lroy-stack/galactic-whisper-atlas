@@ -24,7 +24,7 @@ interface SystemData {
 interface RelationshipAnalysis {
   system_a: string;
   system_b: string;
-  relationship_type: 'allied' | 'trade_partners' | 'dependent' | 'rival' | 'neutral';
+  relationship_type: 'allied' | 'trade_partner' | 'dependent' | 'rival' | 'neutral' | 'enemy' | 'vassal';
   strength: number;
   description: string;
   trade_volume_credits?: number;
@@ -148,9 +148,11 @@ Distance: ${distance.toFixed(2)} light-years
 
 Based on the descriptions, significance, proximity, and known Star Wars lore, determine their relationship type:
 - ALLIED: Strong political or military alliance
-- TRADE_PARTNERS: Primarily economic relationship
+- TRADE_PARTNER: Primarily economic relationship
 - DEPENDENT: One depends on the other for resources/protection
 - RIVAL: Competing interests or conflicts
+- ENEMY: Active hostility or warfare
+- VASSAL: One system subordinate to another
 - NEUTRAL: No significant relationship
 
 Provide a JSON response with:
