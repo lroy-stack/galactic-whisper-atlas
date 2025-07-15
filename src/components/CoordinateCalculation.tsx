@@ -90,7 +90,7 @@ export default function CoordinateCalculation() {
     await calculateCoordinates();
   };
 
-  const totalErrors = allResults.reduce((sum, result) => sum + result.errors, 0);
+  const totalErrors = allResults.reduce((sum, result) => sum + (result?.errors || 0), 0);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
