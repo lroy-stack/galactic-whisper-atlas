@@ -99,6 +99,60 @@ export type Database = {
           },
         ]
       }
+      galactic_systems: {
+        Row: {
+          allegiance: string | null
+          classification: string | null
+          climate: string | null
+          created_at: string
+          description: string | null
+          grid_coordinates: string | null
+          id: string
+          name: string
+          population: number | null
+          region: string
+          sector: string | null
+          significance: string | null
+          species: string[] | null
+          terrain: string | null
+          updated_at: string
+        }
+        Insert: {
+          allegiance?: string | null
+          classification?: string | null
+          climate?: string | null
+          created_at?: string
+          description?: string | null
+          grid_coordinates?: string | null
+          id?: string
+          name: string
+          population?: number | null
+          region: string
+          sector?: string | null
+          significance?: string | null
+          species?: string[] | null
+          terrain?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allegiance?: string | null
+          classification?: string | null
+          climate?: string | null
+          created_at?: string
+          description?: string | null
+          grid_coordinates?: string | null
+          id?: string
+          name?: string
+          population?: number | null
+          region?: string
+          sector?: string | null
+          significance?: string | null
+          species?: string[] | null
+          terrain?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sources: {
         Row: {
           created_at: string
