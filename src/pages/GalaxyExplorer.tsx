@@ -4,6 +4,7 @@ import SystemDetails from '@/components/SystemDetails';
 import AIAgent from '@/components/AIAgent';
 import SystemDataCompletion from '@/components/SystemDataCompletion';
 import CoordinateCalculation from '@/components/CoordinateCalculation';
+import CoordinateTest from '@/components/CoordinateTest';
 import { StarSystem } from '@/data/galaxyData';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -12,6 +13,7 @@ export default function GalaxyExplorer() {
   const [selectedSystem, setSelectedSystem] = useState<StarSystem | null>(null);
   const [showDataCompletion, setShowDataCompletion] = useState(false);
   const [showCoordinateCalculation, setShowCoordinateCalculation] = useState(false);
+  const [showCoordinateTest, setShowCoordinateTest] = useState(false);
 
   const handleSystemSelect = (system: StarSystem) => {
     setSelectedSystem(system);
@@ -42,7 +44,7 @@ export default function GalaxyExplorer() {
                   Explora la galaxia muy, muy lejana con navegación 3D interactiva y IA especializada
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
@@ -60,6 +62,15 @@ export default function GalaxyExplorer() {
                 >
                   <Settings className="h-4 w-4" />
                   Coordenadas 3D
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCoordinateTest(!showCoordinateTest)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Test Coordenadas
                 </Button>
               </div>
             </div>
@@ -96,6 +107,23 @@ export default function GalaxyExplorer() {
                 ✕
               </Button>
               <CoordinateCalculation />
+            </div>
+          </div>
+        )}
+
+        {/* Coordinate Test Modal Overlay */}
+        {showCoordinateTest && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCoordinateTest(false)}
+                className="absolute -top-2 -right-2 z-30"
+              >
+                ✕
+              </Button>
+              <CoordinateTest />
             </div>
           </div>
         )}
