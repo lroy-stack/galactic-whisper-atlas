@@ -8,7 +8,9 @@ import CoordinateTest from '@/components/CoordinateTest';
 import SystemRelationshipAnalysis from '@/components/SystemRelationshipAnalysis';
 import { StarSystem } from '@/data/galaxyData';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Settings, GitBranch } from 'lucide-react';
+import { useGalacticData } from '@/hooks/useGalacticData';
 
 export default function GalaxyExplorer() {
   const [selectedSystem, setSelectedSystem] = useState<StarSystem | null>(null);
@@ -16,6 +18,9 @@ export default function GalaxyExplorer() {
   const [showCoordinateCalculation, setShowCoordinateCalculation] = useState(false);
   const [showCoordinateTest, setShowCoordinateTest] = useState(false);
   const [showRelationshipAnalysis, setShowRelationshipAnalysis] = useState(false);
+  const [showRelationships, setShowRelationships] = useState(false);
+  
+  const { refresh } = useGalacticData();
 
   const handleSystemSelect = (system: StarSystem) => {
     setSelectedSystem(system);
@@ -32,6 +37,7 @@ export default function GalaxyExplorer() {
         <GalaxyMap3D 
           selectedSystem={selectedSystem}
           onSystemSelect={handleSystemSelect}
+          showRelationships={showRelationships}
         />
         
         {/* Header Overlay */}
@@ -83,6 +89,21 @@ export default function GalaxyExplorer() {
                   <Settings className="h-4 w-4" />
                   Relaciones
                 </Button>
+              </div>
+            </div>
+            
+            {/* Relationship Visualization Controls */}
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={showRelationships}
+                  onCheckedChange={setShowRelationships}
+                  id="show-relationships"
+                />
+                <label htmlFor="show-relationships" className="text-sm font-medium flex items-center gap-2">
+                  <GitBranch className="h-4 w-4" />
+                  Mostrar Relaciones Galácticas
+                </label>
               </div>
             </div>
           </div>
@@ -164,7 +185,7 @@ export default function GalaxyExplorer() {
           <SystemDetails 
             system={selectedSystem}
             onEnrichmentComplete={() => {
-              // Optionally refresh data or trigger updates
+              refresh(); // Refresh galactic data when enrichment completes
             }}
           />
         </div>
