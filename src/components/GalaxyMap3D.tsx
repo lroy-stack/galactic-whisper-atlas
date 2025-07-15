@@ -143,9 +143,9 @@ function GalaxyBackground() {
   return (
     <>
       <Stars 
-        radius={3000000} 
-        depth={500000} 
-        count={8000} 
+        radius={300} 
+        depth={50} 
+        count={5000} 
         factor={4} 
         saturation={0} 
         fade 
@@ -153,7 +153,7 @@ function GalaxyBackground() {
       
       {/* Central galactic core glow */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[50000, 32, 32]} />
+        <sphereGeometry args={[15, 32, 32]} />
         <meshBasicMaterial 
           color="#FFD700"
           transparent
@@ -190,7 +190,7 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 100000, 300000], fov: 65 }}
+        camera={{ position: [50, 30, 50], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
@@ -217,11 +217,11 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
             enablePan
             enableZoom
             enableRotate
-            zoomSpeed={1.2}
-            panSpeed={1.5}
-            rotateSpeed={0.5}
-            maxDistance={2500000}
-            minDistance={5000}
+            zoomSpeed={0.6}
+            panSpeed={0.8}
+            rotateSpeed={0.4}
+            maxDistance={200}
+            minDistance={10}
           />
         </Suspense>
       </Canvas>
