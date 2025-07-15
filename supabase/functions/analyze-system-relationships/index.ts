@@ -176,8 +176,15 @@ Provide a JSON response with:
 
           console.log(`🤖 AI analysis for ${systemA.name} ↔ ${systemB.name}:`, aiContent);
 
-          // Parse AI response
-          const relationshipData = JSON.parse(aiContent);
+          // Clean and parse AI response (handle markdown formatting)
+          let cleanContent = aiContent.trim();
+          if (cleanContent.startsWith('```json')) {
+            cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          } else if (cleanContent.startsWith('```')) {
+            cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+          
+          const relationshipData = JSON.parse(cleanContent);
 
           // Validate and sanitize the relationship data
           const relationship: RelationshipAnalysis = {
@@ -197,20 +204,61 @@ Provide a JSON response with:
 
         } catch (aiError) {
           console.error(`❌ Error analyzing ${systemA.name} ↔ ${systemB.name}:`, aiError);
-          // Continue with next pair
+          console.error('Raw AI content:', aiContent);
+          
+          // Create a neutral relationship as fallback
+          const fallbackRelationship: RelationshipAnalysis = {
+            system_a: systemA.id,
+            system_b: systemB.id,
+            relationship_type: 'neutral',
+            strength: 3,
+            description: `Geographic proximity relationship between ${systemA.name} and ${systemB.name}. Distance: ${distance.toFixed(2)} light-years.`,
+            trade_volume_credits: null,
+            military_cooperation: false,
+            cultural_exchange: false
+          };
+          
+          relationships.push(fallbackRelationship);
+          console.log(`⚠️ Used fallback relationship for ${systemA.name} ↔ ${systemB.name}`);
         }
 
         // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
     }
 
     console.log(`🎯 Analysis complete: ${relationships.length} relationships identified`);
 
+    // Save relationships to database
+    if (relationships.length > 0) {
+      const relationshipInserts = relationships.map(r => ({
+        system_a_id: r.system_a,
+        system_b_id: r.system_b,
+        relationship_type: r.relationship_type,
+        strength: r.strength,
+        description: r.description,
+        trade_volume_credits: r.trade_volume_credits,
+        military_cooperation: r.military_cooperation,
+        cultural_exchange: r.cultural_exchange
+      }));
+
+      const { error: insertError } = await supabase
+        .from('system_relationships')
+        .insert(relationshipInserts);
+
+      if (insertError) {
+        console.error('❌ Error inserting relationships:', insertError);
+        throw new Error(`Failed to save relationships: ${insertError.message}`);
+      }
+
+      console.log(`💾 Successfully saved ${relationships.length} relationships to database`);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       relationshipsAnalyzed: relationships.length,
       totalSystemsProcessed: systems.length,
+      relationshipsSaved: relationships.length,
       relationships: relationships.map(r => ({
         system_a_name: systems.find(s => s.id === r.system_a)?.name,
         system_b_name: systems.find(s => s.id === r.system_b)?.name,
