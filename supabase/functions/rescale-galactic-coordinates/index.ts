@@ -7,17 +7,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Regional scaling configuration - EXPANDED for galactic scale
+// Regional scaling configuration - MASSIVE galactic scale
 const REGION_CONFIG = {
-  'Deep Core': { maxRadius: 1500, priority: 1 },
-  'Core Worlds': { maxRadius: 2500, priority: 2 },
-  'Colonies': { maxRadius: 5000, priority: 3 },
-  'Inner Rim': { maxRadius: 5000, priority: 3 },
-  'Expansion Region': { maxRadius: 10000, priority: 4 },
-  'Mid Rim': { maxRadius: 10000, priority: 4 },
-  'Outer Rim': { maxRadius: 18000, priority: 5 },
-  'Wild Space': { maxRadius: 20000, priority: 6 },
-  'Unknown Regions': { maxRadius: 20000, priority: 6 }
+  'Deep Core': { maxRadius: 150000, priority: 1 },
+  'Core Worlds': { maxRadius: 250000, priority: 2 },
+  'Colonies': { maxRadius: 500000, priority: 3 },
+  'Inner Rim': { maxRadius: 500000, priority: 3 },
+  'Expansion Region': { maxRadius: 1000000, priority: 4 },
+  'Mid Rim': { maxRadius: 1000000, priority: 4 },
+  'Outer Rim': { maxRadius: 1800000, priority: 5 },
+  'Wild Space': { maxRadius: 2000000, priority: 6 },
+  'Unknown Regions': { maxRadius: 2000000, priority: 6 }
 };
 
 interface System {
@@ -212,12 +212,12 @@ function rescaleSystems(
 ): System[] {
   const rescaled: System[] = [];
   
-  // EXPANSION FACTOR: Multiply coordinates by 50x minimum
-  const expansionFactor = 50;
+  // MASSIVE EXPANSION FACTOR: x50,000 total expansion
+  const expansionFactor = 50000;
   
-  // Track used positions to ensure minimum separation (much larger now)
+  // Track used positions to ensure minimum separation (galactic scale)
   const usedPositions: { x: number; y: number; z: number }[] = [];
-  const minSeparation = 250; // Much larger separation for galactic scale
+  const minSeparation = 5000; // Massive separation for true galactic scale
 
   for (const system of systems) {
     if (system.coordinate_x === null || system.coordinate_y === null || system.coordinate_z === null) {
@@ -263,12 +263,12 @@ function rescaleSystems(
 
       if (!tooClose) break;
 
-      // Add larger random offset to avoid collision at galactic scale
+      // Add massive random offset to avoid collision at true galactic scale
       const angle = Math.random() * 2 * Math.PI;
-      const offset = minSeparation * (1 + Math.random() * 2);
+      const offset = minSeparation * (1 + Math.random() * 5);
       finalX = x + Math.cos(angle) * offset;
       finalY = y + Math.sin(angle) * offset;
-      finalZ = z + (Math.random() - 0.5) * offset * 2;
+      finalZ = z + (Math.random() - 0.5) * offset * 3;
       
       attempts++;
     }
