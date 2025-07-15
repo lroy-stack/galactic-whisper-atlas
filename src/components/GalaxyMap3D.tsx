@@ -220,7 +220,7 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
             zoomSpeed={0.75}
             panSpeed={2.0}
             rotateSpeed={0.4}
-            maxDistance={3000000}
+            maxDistance={1500000}
             minDistance={100}
           />
         </Suspense>
