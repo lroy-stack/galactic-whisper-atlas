@@ -190,7 +190,7 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 3000000], fov: 75 }}
+        camera={{ position: [0, 0, 500000], fov: 75 }}
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
@@ -217,11 +217,11 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
             enablePan
             enableZoom
             enableRotate
-            zoomSpeed={2.0}
-            panSpeed={3.0}
+            zoomSpeed={1.5}
+            panSpeed={2.0}
             rotateSpeed={0.4}
-            maxDistance={8000000}
-            minDistance={1000}
+            maxDistance={3000000}
+            minDistance={100}
           />
         </Suspense>
       </Canvas>
