@@ -28,7 +28,8 @@ function SystemMarker({ system, onSelect, selected }: SystemMarkerProps) {
     }
   });
 
-  const color = GALACTIC_REGIONS[system.region].color;
+  const regionData = GALACTIC_REGIONS[system.region] || GALACTIC_REGIONS['Unknown Regions'];
+  const color = regionData.color;
   const size = Math.max(0.3, system.significance * 0.15);
 
   return (
