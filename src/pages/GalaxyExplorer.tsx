@@ -3,6 +3,7 @@ import GalaxyMap3D from '@/components/GalaxyMap3D';
 import SystemDetails from '@/components/SystemDetails';
 import AIAgent from '@/components/AIAgent';
 import SystemDataCompletion from '@/components/SystemDataCompletion';
+import CoordinateCalculation from '@/components/CoordinateCalculation';
 import { StarSystem } from '@/data/galaxyData';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Settings } from 'lucide-react';
 export default function GalaxyExplorer() {
   const [selectedSystem, setSelectedSystem] = useState<StarSystem | null>(null);
   const [showDataCompletion, setShowDataCompletion] = useState(false);
+  const [showCoordinateCalculation, setShowCoordinateCalculation] = useState(false);
 
   const handleSystemSelect = (system: StarSystem) => {
     setSelectedSystem(system);
@@ -40,15 +42,26 @@ export default function GalaxyExplorer() {
                   Explora la galaxia muy, muy lejana con navegación 3D interactiva y IA especializada
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDataCompletion(!showDataCompletion)}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Completar Datos
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDataCompletion(!showDataCompletion)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Completar Datos
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCoordinateCalculation(!showCoordinateCalculation)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Coordenadas 3D
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -66,6 +79,23 @@ export default function GalaxyExplorer() {
                 ✕
               </Button>
               <SystemDataCompletion />
+            </div>
+          </div>
+        )}
+
+        {/* Coordinate Calculation Modal Overlay */}
+        {showCoordinateCalculation && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCoordinateCalculation(false)}
+                className="absolute -top-2 -right-2 z-30"
+              >
+                ✕
+              </Button>
+              <CoordinateCalculation />
             </div>
           </div>
         )}

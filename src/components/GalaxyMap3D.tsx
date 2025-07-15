@@ -1,8 +1,9 @@
-import React, { Suspense, useRef, useState, useMemo } from 'react';
+import React, { Suspense, useRef, useState, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { STAR_SYSTEMS, GALACTIC_REGIONS, StarSystem } from '@/data/galaxyData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SystemMarkerProps {
   system: StarSystem;
@@ -166,6 +167,71 @@ interface GalaxyMap3DProps {
 }
 
 export default function GalaxyMap3D({ selectedSystem, onSystemSelect }: GalaxyMap3DProps) {
+  // TODO: Enable after database migration is complete
+  // const [dbSystems, setDbSystems] = useState<StarSystem[]>([]);
+  // const [loading, setLoading] = useState(true);
+
+  // // Load systems from database with 3D coordinates
+  // useEffect(() => {
+  //   async function loadSystemsFromDB() {
+  //     try {
+  //       const { data: systems, error } = await supabase
+  //         .from('galactic_systems')
+  //         .select('id, name, region, grid_coordinates, coordinate_x, coordinate_y, coordinate_z, population, classification, description')
+  //         .not('coordinate_x', 'is', null)
+  //         .not('coordinate_y', 'is', null)
+  //         .not('coordinate_z', 'is', null);
+
+  //       if (error) {
+  //         console.error('Error loading systems from DB:', error);
+  //         return;
+  //       }
+
+  //       if (systems) {
+  //         // Convert database systems to StarSystem format
+  //         const convertedSystems: StarSystem[] = systems.map((sys) => ({
+  //           id: sys.id,
+  //           name: sys.name,
+  //           region: sys.region,
+  //           galacticCoordinates: sys.grid_coordinates || '',
+  //           description: sys.description || '',
+  //           // Convert from light-years to 3D scene units (1:5000 scale)
+  //           coordinates: [
+  //             (sys.coordinate_x || 0) / 5000,
+  //             (sys.coordinate_y || 0) / 5000, 
+  //             (sys.coordinate_z || 0) / 5000
+  //           ] as [number, number, number],
+  //           planets: [], // TODO: Load planets from DB
+  //           significance: Math.min((sys.population || 0) / 1000000000, 5) // Scale significance based on population
+  //         }));
+
+  //         console.log(`✅ Loaded ${convertedSystems.length} systems from database with 3D coordinates`);
+  //         setDbSystems(convertedSystems);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error loading systems:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   loadSystemsFromDB();
+  // }, []);
+
+  // // Combine database systems with fallback hardcoded systems
+  // const allSystems = useMemo(() => {
+  //   // Use database systems if available, otherwise fallback to hardcoded
+  //   return dbSystems.length > 0 ? dbSystems : STAR_SYSTEMS;
+  // }, [dbSystems]);
+
+  // if (loading) {
+  //   return (
+  //     <div className="w-full h-full flex items-center justify-center">
+  //       <div className="text-white">Cargando sistemas galácticos...</div>
+  //     </div>
+  //   );
+  // }
+
   return (
     <div className="w-full h-full">
       <Canvas
@@ -177,7 +243,6 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect }: GalaxyMa
           <pointLight position={[0, 0, 0]} intensity={0.8} color="#FFD700" />
           
           <GalaxyBackground />
-          <RegionVolumes />
           
           {STAR_SYSTEMS.map((system) => (
             <SystemMarker
@@ -200,6 +265,12 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect }: GalaxyMa
           />
         </Suspense>
       </Canvas>
+      
+      {/* Stats overlay */}
+      <div className="absolute bottom-4 left-4 text-white text-sm bg-black/50 p-2 rounded">
+        {STAR_SYSTEMS.length} sistemas cargados (Local)
+        {/* TODO: Show DB systems count after migration */}
+      </div>
     </div>
   );
 }
