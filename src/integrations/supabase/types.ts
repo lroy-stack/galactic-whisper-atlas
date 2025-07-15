@@ -153,6 +153,314 @@ export type Database = {
         }
         Relationships: []
       }
+      historical_events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          event_type: Database["public"]["Enums"]["event_type"] | null
+          id: string
+          name: string
+          outcome: string | null
+          participants: string[] | null
+          planet_id: string | null
+          related_events: string[] | null
+          significance: string | null
+          start_date: string | null
+          system_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"] | null
+          id?: string
+          name: string
+          outcome?: string | null
+          participants?: string[] | null
+          planet_id?: string | null
+          related_events?: string[] | null
+          significance?: string | null
+          start_date?: string | null
+          system_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"] | null
+          id?: string
+          name?: string
+          outcome?: string | null
+          participants?: string[] | null
+          planet_id?: string | null
+          related_events?: string[] | null
+          significance?: string | null
+          start_date?: string | null
+          system_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historical_events_planet_id_fkey"
+            columns: ["planet_id"]
+            isOneToOne: false
+            referencedRelation: "planets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_events_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          access_restrictions: string | null
+          architectural_style: string | null
+          controlling_faction: string | null
+          coordinates_lat: number | null
+          coordinates_lon: number | null
+          created_at: string | null
+          description: string | null
+          economic_importance: string | null
+          founding_date: string | null
+          historical_significance: string | null
+          id: string
+          location_type: string | null
+          name: string
+          notable_features: string[] | null
+          planet_id: string | null
+          population: number | null
+          strategic_value: string | null
+          system_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_restrictions?: string | null
+          architectural_style?: string | null
+          controlling_faction?: string | null
+          coordinates_lat?: number | null
+          coordinates_lon?: number | null
+          created_at?: string | null
+          description?: string | null
+          economic_importance?: string | null
+          founding_date?: string | null
+          historical_significance?: string | null
+          id?: string
+          location_type?: string | null
+          name: string
+          notable_features?: string[] | null
+          planet_id?: string | null
+          population?: number | null
+          strategic_value?: string | null
+          system_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_restrictions?: string | null
+          architectural_style?: string | null
+          controlling_faction?: string | null
+          coordinates_lat?: number | null
+          coordinates_lon?: number | null
+          created_at?: string | null
+          description?: string | null
+          economic_importance?: string | null
+          founding_date?: string | null
+          historical_significance?: string | null
+          id?: string
+          location_type?: string | null
+          name?: string
+          notable_features?: string[] | null
+          planet_id?: string | null
+          population?: number | null
+          strategic_value?: string | null
+          system_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_planet_id_fkey"
+            columns: ["planet_id"]
+            isOneToOne: false
+            referencedRelation: "planets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planets: {
+        Row: {
+          atmosphere: string | null
+          climate: Database["public"]["Enums"]["climate_type"] | null
+          created_at: string | null
+          day_length_hours: number | null
+          description: string | null
+          diameter_km: number | null
+          flora_fauna: string | null
+          government_type: string | null
+          gravity_standard: number | null
+          hydrosphere_percentage: number | null
+          id: string
+          imported_species: string[] | null
+          major_cities: string[] | null
+          name: string
+          native_species: string[] | null
+          natural_resources: string[] | null
+          notable_locations: string[] | null
+          population: number | null
+          system_id: string | null
+          technology_level: string | null
+          terrain: string | null
+          trade_specialties: string[] | null
+          type: Database["public"]["Enums"]["planet_type"] | null
+          updated_at: string | null
+          year_length_days: number | null
+        }
+        Insert: {
+          atmosphere?: string | null
+          climate?: Database["public"]["Enums"]["climate_type"] | null
+          created_at?: string | null
+          day_length_hours?: number | null
+          description?: string | null
+          diameter_km?: number | null
+          flora_fauna?: string | null
+          government_type?: string | null
+          gravity_standard?: number | null
+          hydrosphere_percentage?: number | null
+          id?: string
+          imported_species?: string[] | null
+          major_cities?: string[] | null
+          name: string
+          native_species?: string[] | null
+          natural_resources?: string[] | null
+          notable_locations?: string[] | null
+          population?: number | null
+          system_id?: string | null
+          technology_level?: string | null
+          terrain?: string | null
+          trade_specialties?: string[] | null
+          type?: Database["public"]["Enums"]["planet_type"] | null
+          updated_at?: string | null
+          year_length_days?: number | null
+        }
+        Update: {
+          atmosphere?: string | null
+          climate?: Database["public"]["Enums"]["climate_type"] | null
+          created_at?: string | null
+          day_length_hours?: number | null
+          description?: string | null
+          diameter_km?: number | null
+          flora_fauna?: string | null
+          government_type?: string | null
+          gravity_standard?: number | null
+          hydrosphere_percentage?: number | null
+          id?: string
+          imported_species?: string[] | null
+          major_cities?: string[] | null
+          name?: string
+          native_species?: string[] | null
+          natural_resources?: string[] | null
+          notable_locations?: string[] | null
+          population?: number | null
+          system_id?: string | null
+          technology_level?: string | null
+          terrain?: string | null
+          trade_specialties?: string[] | null
+          type?: Database["public"]["Enums"]["planet_type"] | null
+          updated_at?: string | null
+          year_length_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planets_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resources: {
+        Row: {
+          abundance: string | null
+          annual_output: string | null
+          controlled_by: string | null
+          created_at: string | null
+          environmental_impact: string | null
+          extraction_difficulty: string | null
+          extraction_methods: string[] | null
+          id: string
+          market_value: string | null
+          planet_id: string | null
+          reserves_estimated: string | null
+          resource_name: string
+          resource_type: Database["public"]["Enums"]["resource_type"] | null
+          system_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          abundance?: string | null
+          annual_output?: string | null
+          controlled_by?: string | null
+          created_at?: string | null
+          environmental_impact?: string | null
+          extraction_difficulty?: string | null
+          extraction_methods?: string[] | null
+          id?: string
+          market_value?: string | null
+          planet_id?: string | null
+          reserves_estimated?: string | null
+          resource_name: string
+          resource_type?: Database["public"]["Enums"]["resource_type"] | null
+          system_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          abundance?: string | null
+          annual_output?: string | null
+          controlled_by?: string | null
+          created_at?: string | null
+          environmental_impact?: string | null
+          extraction_difficulty?: string | null
+          extraction_methods?: string[] | null
+          id?: string
+          market_value?: string | null
+          planet_id?: string | null
+          reserves_estimated?: string | null
+          resource_name?: string
+          resource_type?: Database["public"]["Enums"]["resource_type"] | null
+          system_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_planet_id_fkey"
+            columns: ["planet_id"]
+            isOneToOne: false
+            referencedRelation: "planets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sources: {
         Row: {
           created_at: string
@@ -176,6 +484,209 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      species: {
+        Row: {
+          average_height_cm: number | null
+          average_lifespan_years: number | null
+          classification: string | null
+          created_at: string | null
+          culture_summary: string | null
+          distinctive_features: string | null
+          force_sensitivity: string | null
+          homeworld_id: string | null
+          id: string
+          language_family: string | null
+          name: string
+          notable_individuals: string[] | null
+          physical_description: string | null
+          society_structure: string | null
+          technology_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_height_cm?: number | null
+          average_lifespan_years?: number | null
+          classification?: string | null
+          created_at?: string | null
+          culture_summary?: string | null
+          distinctive_features?: string | null
+          force_sensitivity?: string | null
+          homeworld_id?: string | null
+          id?: string
+          language_family?: string | null
+          name: string
+          notable_individuals?: string[] | null
+          physical_description?: string | null
+          society_structure?: string | null
+          technology_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_height_cm?: number | null
+          average_lifespan_years?: number | null
+          classification?: string | null
+          created_at?: string | null
+          culture_summary?: string | null
+          distinctive_features?: string | null
+          force_sensitivity?: string | null
+          homeworld_id?: string | null
+          id?: string
+          language_family?: string | null
+          name?: string
+          notable_individuals?: string[] | null
+          physical_description?: string | null
+          society_structure?: string | null
+          technology_level?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "species_homeworld_id_fkey"
+            columns: ["homeworld_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_relationships: {
+        Row: {
+          active_treaties: string[] | null
+          created_at: string | null
+          cultural_exchange: boolean | null
+          description: string | null
+          established_date: string | null
+          id: string
+          military_cooperation: boolean | null
+          relationship_type:
+            | Database["public"]["Enums"]["relationship_type"]
+            | null
+          strength: number | null
+          system_a_id: string | null
+          system_b_id: string | null
+          trade_volume_credits: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_treaties?: string[] | null
+          created_at?: string | null
+          cultural_exchange?: boolean | null
+          description?: string | null
+          established_date?: string | null
+          id?: string
+          military_cooperation?: boolean | null
+          relationship_type?:
+            | Database["public"]["Enums"]["relationship_type"]
+            | null
+          strength?: number | null
+          system_a_id?: string | null
+          system_b_id?: string | null
+          trade_volume_credits?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_treaties?: string[] | null
+          created_at?: string | null
+          cultural_exchange?: boolean | null
+          description?: string | null
+          established_date?: string | null
+          id?: string
+          military_cooperation?: boolean | null
+          relationship_type?:
+            | Database["public"]["Enums"]["relationship_type"]
+            | null
+          strength?: number | null
+          system_a_id?: string | null
+          system_b_id?: string | null
+          trade_volume_credits?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_relationships_system_a_id_fkey"
+            columns: ["system_a_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_relationships_system_b_id_fkey"
+            columns: ["system_b_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_routes: {
+        Row: {
+          controlling_faction: string | null
+          created_at: string | null
+          description: string | null
+          destination_system_id: string | null
+          established_date: string | null
+          id: string
+          intermediate_systems: string[] | null
+          name: string
+          origin_system_id: string | null
+          primary_goods: string[] | null
+          route_type: string | null
+          safety_rating: number | null
+          status: string | null
+          travel_time_days: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          controlling_faction?: string | null
+          created_at?: string | null
+          description?: string | null
+          destination_system_id?: string | null
+          established_date?: string | null
+          id?: string
+          intermediate_systems?: string[] | null
+          name: string
+          origin_system_id?: string | null
+          primary_goods?: string[] | null
+          route_type?: string | null
+          safety_rating?: number | null
+          status?: string | null
+          travel_time_days?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          controlling_faction?: string | null
+          created_at?: string | null
+          description?: string | null
+          destination_system_id?: string | null
+          established_date?: string | null
+          id?: string
+          intermediate_systems?: string[] | null
+          name?: string
+          origin_system_id?: string | null
+          primary_goods?: string[] | null
+          route_type?: string | null
+          safety_rating?: number | null
+          status?: string | null
+          travel_time_days?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_routes_destination_system_id_fkey"
+            columns: ["destination_system_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_routes_origin_system_id_fkey"
+            columns: ["origin_system_id"]
+            isOneToOne: false
+            referencedRelation: "galactic_systems"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -311,7 +822,50 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      climate_type:
+        | "temperate"
+        | "tropical"
+        | "arid"
+        | "frozen"
+        | "toxic"
+        | "variable"
+        | "artificial"
+        | "unknown"
+      event_type:
+        | "battle"
+        | "treaty"
+        | "discovery"
+        | "founding"
+        | "destruction"
+        | "liberation"
+        | "occupation"
+        | "rebellion"
+      planet_type:
+        | "terrestrial"
+        | "gas_giant"
+        | "ice_world"
+        | "desert"
+        | "ocean"
+        | "volcanic"
+        | "forest"
+        | "urban"
+        | "barren"
+        | "asteroid"
+      relationship_type:
+        | "allied"
+        | "enemy"
+        | "neutral"
+        | "trade_partner"
+        | "vassal"
+        | "rival"
+        | "dependent"
+      resource_type:
+        | "mineral"
+        | "energy"
+        | "agricultural"
+        | "technological"
+        | "cultural"
+        | "strategic"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,6 +992,56 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      climate_type: [
+        "temperate",
+        "tropical",
+        "arid",
+        "frozen",
+        "toxic",
+        "variable",
+        "artificial",
+        "unknown",
+      ],
+      event_type: [
+        "battle",
+        "treaty",
+        "discovery",
+        "founding",
+        "destruction",
+        "liberation",
+        "occupation",
+        "rebellion",
+      ],
+      planet_type: [
+        "terrestrial",
+        "gas_giant",
+        "ice_world",
+        "desert",
+        "ocean",
+        "volcanic",
+        "forest",
+        "urban",
+        "barren",
+        "asteroid",
+      ],
+      relationship_type: [
+        "allied",
+        "enemy",
+        "neutral",
+        "trade_partner",
+        "vassal",
+        "rival",
+        "dependent",
+      ],
+      resource_type: [
+        "mineral",
+        "energy",
+        "agricultural",
+        "technological",
+        "cultural",
+        "strategic",
+      ],
+    },
   },
 } as const

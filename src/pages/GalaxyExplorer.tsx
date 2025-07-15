@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import GalaxyMap3D from '@/components/GalaxyMap3D';
-import SystemInfo from '@/components/SystemInfo';
+import SystemDetails from '@/components/SystemDetails';
 import AIAgent from '@/components/AIAgent';
 import { StarSystem } from '@/data/galaxyData';
 
@@ -41,9 +41,11 @@ export default function GalaxyExplorer() {
       <div className="w-96 flex flex-col gap-4 p-4 border-l border-border">
         {/* System Information */}
         <div className="flex-1">
-          <SystemInfo 
+          <SystemDetails 
             system={selectedSystem}
-            onNavigateToSystem={handleSystemNavigate}
+            onEnrichmentComplete={() => {
+              // Optionally refresh data or trigger updates
+            }}
           />
         </div>
 
