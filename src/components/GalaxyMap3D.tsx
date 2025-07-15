@@ -217,11 +217,11 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
             enablePan
             enableZoom
             enableRotate
-            zoomSpeed={0.6}
-            panSpeed={0.8}
-            rotateSpeed={0.4}
-            maxDistance={200}
-            minDistance={10}
+            zoomSpeed={0.8}
+            panSpeed={1.0}
+            rotateSpeed={0.5}
+            maxDistance={1000}
+            minDistance={5}
           />
         </Suspense>
       </Canvas>
