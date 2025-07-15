@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Network, Save, Eye, Users } from 'lucide-react';
+import { Loader2, Network, Save, Eye, Users, TestTube } from 'lucide-react';
 
 interface AnalyzedRelationship {
   system_a_name: string;
@@ -29,12 +29,54 @@ interface AnalysisResult {
 export default function SystemRelationshipAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [selectedRelationships, setSelectedRelationships] = useState<Set<number>>(new Set());
   const [showPreview, setShowPreview] = useState(false);
   const [forceReanalysis, setForceReanalysis] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null);
   const { toast } = useToast();
+
+  const runSystemTest = async () => {
+    setIsTesting(true);
+    setTestResult(null);
+    
+    try {
+      toast({
+        title: "Ejecutando prueba",
+        description: "Verificando conectividad y datos del sistema...",
+      });
+
+      const { data, error } = await supabase.functions.invoke('test-relationship-system');
+
+      if (error) {
+        throw error;
+      }
+
+      setTestResult(data);
+
+      if (data.success) {
+        toast({
+          title: "✅ Prueba exitosa",
+          description: `Sistema funcionando correctamente. ${data.database.systemsWithDescriptions} sistemas listos para análisis.`,
+        });
+      } else {
+        throw new Error(data.error);
+      }
+
+    } catch (error) {
+      console.error('Error in system test:', error);
+      toast({
+        variant: "destructive",
+        title: "❌ Error en la prueba",
+        description: `${error.message}`,
+      });
+      setTestResult({ success: false, error: error.message });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const runAnalysis = async () => {
     setIsAnalyzing(true);
@@ -187,8 +229,22 @@ export default function SystemRelationshipAnalysis() {
       <CardContent className="space-y-6">
         <div className="flex gap-4 flex-wrap">
           <Button 
+            onClick={runSystemTest} 
+            disabled={isAnalyzing || isSaving || isTesting}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            {isTesting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <TestTube className="h-4 w-4" />
+            )}
+            {isTesting ? 'Probando...' : 'Probar Sistema'}
+          </Button>
+
+          <Button 
             onClick={runAnalysis} 
-            disabled={isAnalyzing || isSaving}
+            disabled={isAnalyzing || isSaving || isTesting}
             className="flex items-center gap-2"
           >
             {isAnalyzing ? (
@@ -213,7 +269,7 @@ export default function SystemRelationshipAnalysis() {
               <Button 
                 variant="default"
                 onClick={saveSelectedRelationships}
-                disabled={isSaving || selectedRelationships.size === 0}
+                disabled={isSaving || selectedRelationships.size === 0 || isTesting}
                 className="flex items-center gap-2"
               >
                 {isSaving ? (
@@ -237,6 +293,57 @@ export default function SystemRelationshipAnalysis() {
             Forzar re-análisis (sobrescribir relaciones existentes)
           </label>
         </div>
+
+        {testResult && (
+          <Card className="p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              Resultado de la Prueba
+            </h4>
+            {testResult.success ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Sistemas con descripciones:</span>
+                    <div className="text-primary">{testResult.database.systemsWithDescriptions}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Relaciones existentes:</span>
+                    <div className="text-primary">{testResult.database.existingRelationships}</div>
+                  </div>
+                </div>
+                
+                {testResult.database.sampleSystems && (
+                  <div>
+                    <span className="font-medium text-sm">Sistemas de muestra:</span>
+                    <div className="flex gap-2 mt-1 flex-wrap">
+                      {testResult.database.sampleSystems.map((system: any, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {system.name} ({system.region})
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {testResult.recommendations && testResult.recommendations.length > 0 && (
+                  <div>
+                    <span className="font-medium text-sm">Recomendaciones:</span>
+                    <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                      {testResult.recommendations.map((rec: string, index: number) => (
+                        <li key={index}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-destructive text-sm">
+                Error: {testResult.error}
+              </div>
+            )}
+          </Card>
+        )}
 
         {isAnalyzing && (
           <div className="space-y-3">
