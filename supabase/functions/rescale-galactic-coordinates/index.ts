@@ -212,12 +212,12 @@ function rescaleSystems(
 ): System[] {
   const rescaled: System[] = [];
   
-  // MASSIVE EXPANSION FACTOR: x50,000 total expansion
+  // Keep current expansion factor but implement galactic disk distribution
   const expansionFactor = 50000;
   
-  // Track used positions to ensure minimum separation (galactic scale)
+  // Track used positions to ensure minimum separation
   const usedPositions: { x: number; y: number; z: number }[] = [];
-  const minSeparation = 5000; // Massive separation for true galactic scale
+  const minSeparation = 5000;
 
   for (const system of systems) {
     if (system.coordinate_x === null || system.coordinate_y === null || system.coordinate_z === null) {
@@ -229,20 +229,38 @@ function rescaleSystems(
     const regionConfig = REGION_CONFIG[system.region] || REGION_CONFIG['Unknown Regions'];
     const regionCenter = regionCenters[system.region] || galacticCenter;
 
-    // EXPAND coordinates by the expansion factor (50x minimum)
-    let x = (system.coordinate_x - galacticCenter.x) * expansionFactor;
+    // Calculate distance from galactic center for disk distribution
+    const centerDistance = Math.sqrt(
+      Math.pow(system.coordinate_x - galacticCenter.x, 2) + 
+      Math.pow(system.coordinate_z - galacticCenter.z, 2)
+    );
+    
+    // Apply galactic disk distribution
+    const angle = Math.atan2(
+      system.coordinate_z - galacticCenter.z, 
+      system.coordinate_x - galacticCenter.x
+    );
+    
+    // Add spiral arm effect (4 spiral arms)
+    const spiralArms = 4;
+    const spiralTightness = 0.0003;
+    const armIndex = Math.floor((angle + Math.PI) / (2 * Math.PI) * spiralArms) % spiralArms;
+    const spiralAngle = angle + centerDistance * spiralTightness * expansionFactor * 0.00001;
+    
+    // Expand coordinates with disk distribution
+    let x = Math.cos(spiralAngle) * centerDistance * expansionFactor;
+    let z = Math.sin(spiralAngle) * centerDistance * expansionFactor;
+    
+    // Flatten Y coordinate for disk shape (±10% of radial distance)
+    const diskHeight = Math.abs(centerDistance * expansionFactor * 0.1);
     let y = (system.coordinate_y - galacticCenter.y) * expansionFactor;
-    let z = (system.coordinate_z - galacticCenter.z) * expansionFactor;
+    y = Math.max(-diskHeight, Math.min(diskHeight, y));
 
     // Apply region-based scaling
-    const distanceFromRegionCenter = Math.sqrt(
-      Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2)
-    );
-
-    if (distanceFromRegionCenter > regionConfig.maxRadius) {
-      const scale = regionConfig.maxRadius / distanceFromRegionCenter;
+    const distanceFromCenter = Math.sqrt(x * x + z * z);
+    if (distanceFromCenter > regionConfig.maxRadius) {
+      const scale = regionConfig.maxRadius / distanceFromCenter;
       x *= scale;
-      y *= scale;
       z *= scale;
     }
 
@@ -263,12 +281,13 @@ function rescaleSystems(
 
       if (!tooClose) break;
 
-      // Add massive random offset to avoid collision at true galactic scale
-      const angle = Math.random() * 2 * Math.PI;
-      const offset = minSeparation * (1 + Math.random() * 5);
-      finalX = x + Math.cos(angle) * offset;
-      finalY = y + Math.sin(angle) * offset;
-      finalZ = z + (Math.random() - 0.5) * offset * 3;
+      // Add random offset in disk plane primarily
+      const offsetAngle = Math.random() * 2 * Math.PI;
+      const offset = minSeparation * (1 + Math.random() * 3);
+      finalX = x + Math.cos(offsetAngle) * offset;
+      finalZ = z + Math.sin(offsetAngle) * offset;
+      // Keep Y offset small to maintain disk shape
+      finalY = y + (Math.random() - 0.5) * offset * 0.2;
       
       attempts++;
     }
