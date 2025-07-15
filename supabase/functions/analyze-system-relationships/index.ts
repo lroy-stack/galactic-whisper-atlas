@@ -47,7 +47,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { batchSize = 20, forceReanalysis = false } = await req.json();
+    const { batchSize = 10, forceReanalysis = false } = await req.json();
 
     console.log(`🚀 Starting relationship analysis (batch: ${batchSize}, force: ${forceReanalysis})`);
 
@@ -75,13 +75,32 @@ serve(async (req) => {
     console.log(`📊 Analyzing relationships for ${systems.length} systems`);
 
     const relationships: RelationshipAnalysis[] = [];
+    let totalProcessed = 0;
+    let totalSaved = 0;
 
-    // Analyze relationships between systems
+    // Create array of all possible system pairs
+    const systemPairs: [SystemData, SystemData][] = [];
     for (let i = 0; i < systems.length; i++) {
       for (let j = i + 1; j < systems.length; j++) {
-        const systemA = systems[i] as SystemData;
-        const systemB = systems[j] as SystemData;
+        systemPairs.push([systems[i] as SystemData, systems[j] as SystemData]);
+      }
+    }
 
+    console.log(`📊 Total pairs to analyze: ${systemPairs.length}`);
+
+    // Process pairs in batches of 5
+    const batchSize = 5;
+    for (let batchStart = 0; batchStart < systemPairs.length; batchStart += batchSize) {
+      const currentBatch = systemPairs.slice(batchStart, batchStart + batchSize);
+      const batchNumber = Math.floor(batchStart / batchSize) + 1;
+      const totalBatches = Math.ceil(systemPairs.length / batchSize);
+      
+      console.log(`🔄 Processing batch ${batchNumber}/${totalBatches} (${currentBatch.length} pairs)`);
+
+      const batchRelationships: RelationshipAnalysis[] = [];
+
+      // Analyze relationships in current batch
+      for (const [systemA, systemB] of currentBatch) {
         console.log(`🔍 Analyzing relationship: ${systemA.name} ↔ ${systemB.name}`);
 
         // Check if relationship already exists
@@ -90,10 +109,11 @@ serve(async (req) => {
             .from('system_relationships')
             .select('id')
             .or(`and(system_a_id.eq.${systemA.id},system_b_id.eq.${systemB.id}),and(system_a_id.eq.${systemB.id},system_b_id.eq.${systemA.id})`)
-            .single();
+            .maybeSingle();
 
           if (existingRelation) {
             console.log(`⏭️ Relationship already exists, skipping`);
+            totalProcessed++;
             continue;
           }
         }
@@ -198,13 +218,12 @@ Provide a JSON response with:
             cultural_exchange: relationshipData.cultural_exchange || false
           };
 
-          relationships.push(relationship);
+          batchRelationships.push(relationship);
           
           console.log(`✅ Analyzed relationship: ${systemA.name} ↔ ${systemB.name} (${relationship.relationship_type}, strength: ${relationship.strength})`);
 
         } catch (aiError) {
           console.error(`❌ Error analyzing ${systemA.name} ↔ ${systemB.name}:`, aiError);
-          console.error('Raw AI content:', aiContent);
           
           // Create a neutral relationship as fallback
           const fallbackRelationship: RelationshipAnalysis = {
@@ -218,41 +237,50 @@ Provide a JSON response with:
             cultural_exchange: false
           };
           
-          relationships.push(fallbackRelationship);
+          batchRelationships.push(fallbackRelationship);
           console.log(`⚠️ Used fallback relationship for ${systemA.name} ↔ ${systemB.name}`);
         }
 
+        totalProcessed++;
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 200));
       }
-    }
 
-    console.log(`🎯 Analysis complete: ${relationships.length} relationships identified`);
+      // Save batch relationships to database
+      if (batchRelationships.length > 0) {
+        const relationshipInserts = batchRelationships.map(r => ({
+          system_a_id: r.system_a,
+          system_b_id: r.system_b,
+          relationship_type: r.relationship_type,
+          strength: r.strength,
+          description: r.description,
+          trade_volume_credits: r.trade_volume_credits,
+          military_cooperation: r.military_cooperation,
+          cultural_exchange: r.cultural_exchange
+        }));
 
-    // Save relationships to database
-    if (relationships.length > 0) {
-      const relationshipInserts = relationships.map(r => ({
-        system_a_id: r.system_a,
-        system_b_id: r.system_b,
-        relationship_type: r.relationship_type,
-        strength: r.strength,
-        description: r.description,
-        trade_volume_credits: r.trade_volume_credits,
-        military_cooperation: r.military_cooperation,
-        cultural_exchange: r.cultural_exchange
-      }));
+        const { error: insertError } = await supabase
+          .from('system_relationships')
+          .insert(relationshipInserts);
 
-      const { error: insertError } = await supabase
-        .from('system_relationships')
-        .insert(relationshipInserts);
+        if (insertError) {
+          console.error('❌ Error inserting batch relationships:', insertError);
+          throw new Error(`Failed to save batch relationships: ${insertError.message}`);
+        }
 
-      if (insertError) {
-        console.error('❌ Error inserting relationships:', insertError);
-        throw new Error(`Failed to save relationships: ${insertError.message}`);
+        totalSaved += batchRelationships.length;
+        relationships.push(...batchRelationships);
+        console.log(`💾 Batch ${batchNumber}: Saved ${batchRelationships.length} relationships (Total saved: ${totalSaved})`);
       }
 
-      console.log(`💾 Successfully saved ${relationships.length} relationships to database`);
+      // Longer delay between batches
+      if (batchStart + batchSize < systemPairs.length) {
+        console.log(`⏸️ Waiting 2 seconds before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
+
+    console.log(`🎯 Analysis complete: ${relationships.length} relationships processed, ${totalSaved} saved to database`);
 
     return new Response(JSON.stringify({
       success: true,
