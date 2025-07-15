@@ -94,11 +94,11 @@ serve(async (req) => {
     console.log(`📊 Total pairs to analyze: ${systemPairs.length}`);
 
     // Process pairs in batches of 5
-    const batchSize = 5;
-    for (let batchStart = 0; batchStart < systemPairs.length; batchStart += batchSize) {
-      const currentBatch = systemPairs.slice(batchStart, batchStart + batchSize);
-      const batchNumber = Math.floor(batchStart / batchSize) + 1;
-      const totalBatches = Math.ceil(systemPairs.length / batchSize);
+    const processingBatchSize = 5;
+    for (let batchStart = 0; batchStart < systemPairs.length; batchStart += processingBatchSize) {
+      const currentBatch = systemPairs.slice(batchStart, batchStart + processingBatchSize);
+      const batchNumber = Math.floor(batchStart / processingBatchSize) + 1;
+      const totalBatches = Math.ceil(systemPairs.length / processingBatchSize);
       
       console.log(`🔄 Processing batch ${batchNumber}/${totalBatches} (${currentBatch.length} pairs)`);
 
@@ -279,7 +279,7 @@ Provide a JSON response with:
       }
 
       // Longer delay between batches
-      if (batchStart + batchSize < systemPairs.length) {
+      if (batchStart + processingBatchSize < systemPairs.length) {
         console.log(`⏸️ Waiting 2 seconds before next batch...`);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
