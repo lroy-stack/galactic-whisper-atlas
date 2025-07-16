@@ -20,22 +20,23 @@ interface RegionBounds {
   maxHeight: number;
 }
 
+// **FIXED SCALE**: Realistic galactic proportions (1 unit ≈ 2 light-years)
 const REGION_BOUNDS: Record<string, RegionBounds> = {
-  'Deep Core': { minRadius: 0, maxRadius: 200000, minHeight: -40000, maxHeight: 40000 },
-  'Core Worlds': { minRadius: 200000, maxRadius: 400000, minHeight: -60000, maxHeight: 60000 },
-  'Colonies': { minRadius: 400000, maxRadius: 700000, minHeight: -80000, maxHeight: 80000 },
-  'Inner Rim': { minRadius: 700000, maxRadius: 1000000, minHeight: -100000, maxHeight: 100000 },
-  'Expansion Region': { minRadius: 1000000, maxRadius: 1500000, minHeight: -120000, maxHeight: 120000 },
-  'Mid Rim': { minRadius: 1500000, maxRadius: 2400000, minHeight: -160000, maxHeight: 160000 },
-  'Outer Rim Territories': { minRadius: 2400000, maxRadius: 3600000, minHeight: -200000, maxHeight: 200000 },
-  'Outer Rim': { minRadius: 2400000, maxRadius: 3600000, minHeight: -200000, maxHeight: 200000 },
-  'Wild Space': { minRadius: 3600000, maxRadius: 4000000, minHeight: -240000, maxHeight: 240000 },
-  'Unknown Regions': { minRadius: 3600000, maxRadius: 4000000, minHeight: -240000, maxHeight: 240000 },
-  'Hutt Space': { minRadius: 2800000, maxRadius: 3800000, minHeight: -180000, maxHeight: 180000 },
-  'Corporate Sector': { minRadius: 1600000, maxRadius: 2600000, minHeight: -170000, maxHeight: 170000 }
+  'Deep Core': { minRadius: 0, maxRadius: 1250, minHeight: -250, maxHeight: 250 },
+  'Core Worlds': { minRadius: 1250, maxRadius: 2500, minHeight: -375, maxHeight: 375 },
+  'Colonies': { minRadius: 2500, maxRadius: 4375, minHeight: -500, maxHeight: 500 },
+  'Inner Rim': { minRadius: 4375, maxRadius: 6250, minHeight: -625, maxHeight: 625 },
+  'Expansion Region': { minRadius: 6250, maxRadius: 9375, minHeight: -750, maxHeight: 750 },
+  'Mid Rim': { minRadius: 9375, maxRadius: 15000, minHeight: -1000, maxHeight: 1000 },
+  'Outer Rim Territories': { minRadius: 15000, maxRadius: 22500, minHeight: -1250, maxHeight: 1250 },
+  'Outer Rim': { minRadius: 15000, maxRadius: 22500, minHeight: -1250, maxHeight: 1250 },
+  'Wild Space': { minRadius: 22500, maxRadius: 25000, minHeight: -1500, maxHeight: 1500 },
+  'Unknown Regions': { minRadius: 22500, maxRadius: 25000, minHeight: -1500, maxHeight: 1500 },
+  'Hutt Space': { minRadius: 17500, maxRadius: 23750, minHeight: -1125, maxHeight: 1125 },
+  'Corporate Sector': { minRadius: 10000, maxRadius: 16250, minHeight: -1063, maxHeight: 1063 }
 };
 
-const DEFAULT_BOUNDS: RegionBounds = { minRadius: 2000000, maxRadius: 3600000, minHeight: -200000, maxHeight: 200000 };
+const DEFAULT_BOUNDS: RegionBounds = { minRadius: 12500, maxRadius: 22500, minHeight: -1250, maxHeight: 1250 };
 
 function hashString(str: string): number {
   let hash = 0;
@@ -62,15 +63,23 @@ function parseGridCoordinates(gridCoords: string): { letter: string; number: num
   };
 }
 
+// **FIXED**: Correct angular distribution for A-Z (26 letters, not 25)
 function letterToAngle(letter: string): number {
   const charCode = letter.charCodeAt(0) - 65; // A=0, B=1, ..., Z=25
-  return (charCode / 25) * Math.PI * 2;
+  return (charCode / 26) * Math.PI * 2; // **CORRECTED**: Divide by 26 for uniform distribution
 }
 
+// **ENHANCED**: Optimized distribution with spiral arm clustering
 function numberToRadius(number: number, region: string): number {
   const bounds = REGION_BOUNDS[region] || DEFAULT_BOUNDS;
-  const normalizedPosition = (number - 1) / 23; // 0 to 1
-  return bounds.minRadius + (bounds.maxRadius - bounds.minRadius) * normalizedPosition;
+  const normalizedPosition = Math.max(0, Math.min(1, (number - 1) / 23)); // Clamp to 0-1
+  
+  // Add spiral arm clustering effect (5% variation)
+  const clusteredPosition = normalizedPosition + 
+    Math.sin(normalizedPosition * Math.PI * 6) * 0.05;
+  
+  return bounds.minRadius + (bounds.maxRadius - bounds.minRadius) * 
+    Math.max(0, Math.min(1, clusteredPosition));
 }
 
 function calculateHeight(
@@ -127,9 +136,14 @@ function convert2DTo3D(
   const radius = numberToRadius(parsed.number, region);
   const height = calculateHeight(region, systemName, population, classification);
   
+  // **ENHANCED**: Add subtle spiral arm structure to galactic disk
+  const spiralInfluence = 0.02; // 2% spiral effect
+  const spiralArms = 2; // Two-arm spiral galaxy
+  const spiralOffset = Math.sin(angle * spiralArms + radius * 0.0001) * spiralInfluence * radius;
+  
   // Convert to Cartesian coordinates (X, Z for disk, Y for height)
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
+  const x = Math.cos(angle) * (radius + spiralOffset);
+  const z = Math.sin(angle) * (radius + spiralOffset);
   const y = height;
   
   return { x, y, z };
@@ -290,7 +304,7 @@ Deno.serve(async (req) => {
     if (!validationError && validationData) {
       for (const coord of validationData) {
         const radius = Math.sqrt(coord.coordinate_x * coord.coordinate_x + coord.coordinate_z * coord.coordinate_z);
-        if (radius <= 4000000 && Math.abs(coord.coordinate_y) <= 240000) {
+        if (radius <= 25000 && Math.abs(coord.coordinate_y) <= 1500) { // **CORRECTED**: Realistic bounds
           validationResults.withinBounds++;
         } else {
           validationResults.outOfBounds++;
@@ -311,10 +325,11 @@ Deno.serve(async (req) => {
           regionStats,
           validation: validationResults,
           newCoordinateSystem: {
-            scale: "1 unit = 25 light-years",
-            diskDiameter: "100,000 light-years (4000 units)",
-            diskHeight: "Variable by region (±20 to ±120 units)",
-            coordinate_system: "X,Z = galactic disk plane, Y = height above/below plane"
+            scale: "1 unit ≈ 2 light-years",
+            diskDiameter: "~100,000 light-years (50,000 units)",
+            diskHeight: "Variable by region (±250 to ±1500 units)",
+            coordinate_system: "X,Z = galactic disk plane, Y = height above/below plane",
+            improvements: "Fixed angular distribution, realistic scaling, spiral arm clustering"
           }
         }
       }),
