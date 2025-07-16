@@ -21,21 +21,21 @@ interface RegionBounds {
 }
 
 const REGION_BOUNDS: Record<string, RegionBounds> = {
-  'Deep Core': { minRadius: 0, maxRadius: 100, minHeight: -20, maxHeight: 20 },
-  'Core Worlds': { minRadius: 100, maxRadius: 200, minHeight: -30, maxHeight: 30 },
-  'Colonies': { minRadius: 200, maxRadius: 350, minHeight: -40, maxHeight: 40 },
-  'Inner Rim': { minRadius: 350, maxRadius: 500, minHeight: -50, maxHeight: 50 },
-  'Expansion Region': { minRadius: 500, maxRadius: 750, minHeight: -60, maxHeight: 60 },
-  'Mid Rim': { minRadius: 750, maxRadius: 1200, minHeight: -80, maxHeight: 80 },
-  'Outer Rim Territories': { minRadius: 1200, maxRadius: 1800, minHeight: -100, maxHeight: 100 },
-  'Outer Rim': { minRadius: 1200, maxRadius: 1800, minHeight: -100, maxHeight: 100 },
-  'Wild Space': { minRadius: 1800, maxRadius: 2000, minHeight: -120, maxHeight: 120 },
-  'Unknown Regions': { minRadius: 1800, maxRadius: 2000, minHeight: -120, maxHeight: 120 },
-  'Hutt Space': { minRadius: 1400, maxRadius: 1900, minHeight: -90, maxHeight: 90 },
-  'Corporate Sector': { minRadius: 800, maxRadius: 1300, minHeight: -85, maxHeight: 85 }
+  'Deep Core': { minRadius: 0, maxRadius: 2000, minHeight: -400, maxHeight: 400 },
+  'Core Worlds': { minRadius: 2000, maxRadius: 4000, minHeight: -600, maxHeight: 600 },
+  'Colonies': { minRadius: 4000, maxRadius: 7000, minHeight: -800, maxHeight: 800 },
+  'Inner Rim': { minRadius: 7000, maxRadius: 10000, minHeight: -1000, maxHeight: 1000 },
+  'Expansion Region': { minRadius: 10000, maxRadius: 15000, minHeight: -1200, maxHeight: 1200 },
+  'Mid Rim': { minRadius: 15000, maxRadius: 24000, minHeight: -1600, maxHeight: 1600 },
+  'Outer Rim Territories': { minRadius: 24000, maxRadius: 36000, minHeight: -2000, maxHeight: 2000 },
+  'Outer Rim': { minRadius: 24000, maxRadius: 36000, minHeight: -2000, maxHeight: 2000 },
+  'Wild Space': { minRadius: 36000, maxRadius: 40000, minHeight: -2400, maxHeight: 2400 },
+  'Unknown Regions': { minRadius: 36000, maxRadius: 40000, minHeight: -2400, maxHeight: 2400 },
+  'Hutt Space': { minRadius: 28000, maxRadius: 38000, minHeight: -1800, maxHeight: 1800 },
+  'Corporate Sector': { minRadius: 16000, maxRadius: 26000, minHeight: -1700, maxHeight: 1700 }
 };
 
-const DEFAULT_BOUNDS: RegionBounds = { minRadius: 1000, maxRadius: 1800, minHeight: -100, maxHeight: 100 };
+const DEFAULT_BOUNDS: RegionBounds = { minRadius: 20000, maxRadius: 36000, minHeight: -2000, maxHeight: 2000 };
 
 function hashString(str: string): number {
   let hash = 0;
@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
     if (!validationError && validationData) {
       for (const coord of validationData) {
         const radius = Math.sqrt(coord.coordinate_x * coord.coordinate_x + coord.coordinate_z * coord.coordinate_z);
-        if (radius <= 2000 && Math.abs(coord.coordinate_y) <= 120) {
+        if (radius <= 40000 && Math.abs(coord.coordinate_y) <= 2400) {
           validationResults.withinBounds++;
         } else {
           validationResults.outOfBounds++;
