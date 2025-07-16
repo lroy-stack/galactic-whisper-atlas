@@ -4,8 +4,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Import Supabase client
-import { createClient } from '@supabase/supabase-js';
+// Import Supabase client for Deno
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Configuration
 const BATCH_SIZE = 50; // Process systems in batches
