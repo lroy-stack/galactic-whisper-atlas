@@ -238,19 +238,28 @@ Deno.serve(async (req) => {
         }
       }
       
-      // Bulk update coordinates in database
-      if (updates.length > 0) {
+      // Update coordinates in database (one by one to avoid upsert issues)
+      for (const update of updates) {
         const { error: updateError } = await supabase
           .from('galactic_systems')
-          .upsert(updates, { onConflict: 'id' });
+          .update({
+            coordinate_x: update.coordinate_x,
+            coordinate_y: update.coordinate_y,
+            coordinate_z: update.coordinate_z,
+            updated_at: update.updated_at
+          })
+          .eq('id', update.id);
         
         if (updateError) {
-          console.error(`Batch ${batch + 1} update error:`, updateError);
-          conversionErrors += updates.length;
+          console.error(`Error updating system ID ${update.id}:`, updateError);
+          conversionErrors++;
         } else {
-          convertedSystems += updates.length;
-          console.log(`Batch ${batch + 1}: Successfully converted ${updates.length} systems`);
+          convertedSystems++;
         }
+      }
+      
+      if (updates.length > 0) {
+        console.log(`Batch ${batch + 1}: Processed ${updates.length} systems`);
       }
       
       if (batchErrors > 0) {
