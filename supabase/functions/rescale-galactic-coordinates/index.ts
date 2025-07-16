@@ -379,7 +379,7 @@ function rescaleSystemsOptimized(
   return rescaled;
 }
 
-// Optimized bulk update function using upsert
+// Optimized bulk update function with proper counting
 async function updateSystemsInChunks(supabase: any, systems: System[]): Promise<{ updated: number; errors: number }> {
   let totalUpdated = 0;
   let totalErrors = 0;
@@ -389,31 +389,47 @@ async function updateSystemsInChunks(supabase: any, systems: System[]): Promise<
     const chunk = systems.slice(i, i + UPDATE_CHUNK_SIZE);
     
     try {
-      // Use upsert for better performance (batch operation)
-      const updates = chunk.map(system => ({
-        id: system.id,
-        coordinate_x: system.coordinate_x,
-        coordinate_y: system.coordinate_y,
-        coordinate_z: system.coordinate_z,
-        updated_at: new Date().toISOString()
-      }));
+      // Update each system individually to get accurate count
+      let chunkUpdated = 0;
+      let chunkErrors = 0;
 
-      const { error } = await supabase
-        .from('galactic_systems')
-        .upsert(updates, { 
-          onConflict: 'id',
-          ignoreDuplicates: false 
-        });
+      for (const system of chunk) {
+        try {
+          const { error, count } = await supabase
+            .from('galactic_systems')
+            .update({
+              coordinate_x: system.coordinate_x,
+              coordinate_y: system.coordinate_y,
+              coordinate_z: system.coordinate_z,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', system.id)
+            .select('id', { count: 'exact', head: true });
 
-      if (error) {
-        console.error(`Chunk update error:`, error);
-        totalErrors += chunk.length;
-      } else {
-        totalUpdated += chunk.length;
+          if (error) {
+            console.error(`Update error for system ${system.id}:`, error);
+            chunkErrors++;
+          } else {
+            chunkUpdated += (count || 1);
+          }
+        } catch (systemError) {
+          console.error(`Failed to update system ${system.id}:`, systemError);
+          chunkErrors++;
+        }
+      }
+
+      totalUpdated += chunkUpdated;
+      totalErrors += chunkErrors;
+      
+      if (chunkUpdated > 0) {
+        console.log(`Updated ${chunkUpdated}/${chunk.length} systems in chunk`);
+      }
+      if (chunkErrors > 0) {
+        console.warn(`${chunkErrors} errors in chunk`);
       }
 
     } catch (error) {
-      console.error(`Failed to update chunk starting at index ${i}:`, error);
+      console.error(`Failed to process chunk starting at index ${i}:`, error);
       totalErrors += chunk.length;
     }
   }
