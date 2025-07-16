@@ -52,10 +52,6 @@ const STAR_WARS_REGIONS: Record<string, RegionConfig> = {
     minRadius: 1800, maxRadius: 2000, minHeight: -80, maxHeight: 80,
     color: '#4682B4', density: 0.2, spiralArm: 4
   },
-  'Outer Rim': { 
-    minRadius: 1800, maxRadius: 2000, minHeight: -80, maxHeight: 80,
-    color: '#4682B4', density: 0.2, spiralArm: 4
-  },
   'Wild Space': { 
     minRadius: 2000, maxRadius: 2200, minHeight: -90, maxHeight: 90,
     color: '#696969', density: 0.1, spiralArm: undefined

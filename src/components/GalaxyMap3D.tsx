@@ -169,7 +169,7 @@ export default function GalaxyMap3D({
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [800, 400, 800], fov: 60 }}
+        camera={{ position: [1500, 800, 1500], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>

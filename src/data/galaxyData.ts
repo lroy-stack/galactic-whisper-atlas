@@ -132,7 +132,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'tatooine',
     name: 'Tatooine',
-    coordinates: [45, -15, 25],
+    coordinates: [1850, -15, 800],
     region: 'Outer Rim Territories',
     sector: 'Arkanis Sector',
     galacticCoordinates: 'R-16',
@@ -154,7 +154,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'alderaan',
     name: 'Alderaan',
-    coordinates: [-20, 10, -15],
+    coordinates: [-300, 10, -200],
     region: 'Core Worlds',
     sector: 'Alderaan Sector',
     galacticCoordinates: 'M-10',
@@ -176,7 +176,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'naboo',
     name: 'Naboo',
-    coordinates: [-25, -5, 20],
+    coordinates: [-1200, -5, 900],
     region: 'Mid Rim',
     sector: 'Chommell Sector',
     galacticCoordinates: 'O-17',
@@ -198,7 +198,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'kamino',
     name: 'Kamino',
-    coordinates: [30, 20, -35],
+    coordinates: [2100, 20, -1000],
     region: 'Wild Space',
     sector: 'Kamino Sector',
     galacticCoordinates: 'S-15',
@@ -220,7 +220,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'geonosis',
     name: 'Geonosis',
-    coordinates: [35, -20, 30],
+    coordinates: [1900, -20, 850],
     region: 'Outer Rim Territories',
     sector: 'Arkanis Sector',
     galacticCoordinates: 'R-16',
@@ -242,7 +242,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'mustafar',
     name: 'Mustafar',
-    coordinates: [40, -30, 15],
+    coordinates: [1750, -30, 650],
     region: 'Outer Rim Territories',
     sector: 'Atravis Sector',
     galacticCoordinates: 'L-19',
@@ -264,7 +264,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'kashyyyk',
     name: 'Kashyyyk',
-    coordinates: [-10, 25, 30],
+    coordinates: [-800, 25, 1200],
     region: 'Mid Rim',
     sector: 'Mytaranor Sector',
     galacticCoordinates: 'P-9',
@@ -286,7 +286,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'dagobah',
     name: 'Dagobah',
-    coordinates: [-35, -25, -20],
+    coordinates: [-1600, -25, -700],
     region: 'Outer Rim Territories',
     sector: 'Sluis Sector',
     galacticCoordinates: 'M-19',
@@ -308,7 +308,7 @@ export const STAR_SYSTEMS: StarSystem[] = [
   {
     id: 'hoth',
     name: 'Hoth',
-    coordinates: [-40, 30, -25],
+    coordinates: [-1700, 30, -800],
     region: 'Outer Rim Territories',
     sector: 'Anoat Sector',
     galacticCoordinates: 'K-18',

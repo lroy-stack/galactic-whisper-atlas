@@ -53,9 +53,9 @@ export function useGalacticData() {
           significance: Number(sys.significance) || Math.min((sys.population || 0) / 1000000000, 5),
           description: sys.description || '',
           coordinates: [
-            (sys.coordinate_x || 0) / 5000,
-            (sys.coordinate_y || 0) / 5000,
-            (sys.coordinate_z || 0) / 5000
+            sys.coordinate_x || 0,
+            sys.coordinate_y || 0,
+            sys.coordinate_z || 0
           ] as [number, number, number],
           planets: []
         }));
