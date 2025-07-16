@@ -220,8 +220,9 @@ export default function GalaxyMap3D({
             zoomSpeed={1.2}
             panSpeed={2.0}
             rotateSpeed={0.8}
-            maxDistance={5000}
-            minDistance={50}
+            maxDistance={8000}
+            minDistance={100}
+            target={[0, 0, 0]}
           />
         </Suspense>
       </Canvas>
