@@ -18,22 +18,22 @@ export interface RegionBounds {
 // Define galactic disk structure for each region
 // Scale: ±2000 units = 100,000 light-years (25 light-years per unit)
 const REGION_BOUNDS: Record<string, RegionBounds> = {
-  'Deep Core': { minRadius: 0, maxRadius: 2000, minHeight: -400, maxHeight: 400 },
-  'Core Worlds': { minRadius: 2000, maxRadius: 4000, minHeight: -600, maxHeight: 600 },
-  'Colonies': { minRadius: 4000, maxRadius: 7000, minHeight: -800, maxHeight: 800 },
-  'Inner Rim': { minRadius: 7000, maxRadius: 10000, minHeight: -1000, maxHeight: 1000 },
-  'Expansion Region': { minRadius: 10000, maxRadius: 15000, minHeight: -1200, maxHeight: 1200 },
-  'Mid Rim': { minRadius: 15000, maxRadius: 24000, minHeight: -1600, maxHeight: 1600 },
-  'Outer Rim Territories': { minRadius: 24000, maxRadius: 36000, minHeight: -2000, maxHeight: 2000 },
-  'Outer Rim': { minRadius: 24000, maxRadius: 36000, minHeight: -2000, maxHeight: 2000 },
-  'Wild Space': { minRadius: 36000, maxRadius: 40000, minHeight: -2400, maxHeight: 2400 },
-  'Unknown Regions': { minRadius: 36000, maxRadius: 40000, minHeight: -2400, maxHeight: 2400 },
-  'Hutt Space': { minRadius: 28000, maxRadius: 38000, minHeight: -1800, maxHeight: 1800 },
-  'Corporate Sector': { minRadius: 16000, maxRadius: 26000, minHeight: -1700, maxHeight: 1700 }
+  'Deep Core': { minRadius: 0, maxRadius: 200000, minHeight: -40000, maxHeight: 40000 },
+  'Core Worlds': { minRadius: 200000, maxRadius: 400000, minHeight: -60000, maxHeight: 60000 },
+  'Colonies': { minRadius: 400000, maxRadius: 700000, minHeight: -80000, maxHeight: 80000 },
+  'Inner Rim': { minRadius: 700000, maxRadius: 1000000, minHeight: -100000, maxHeight: 100000 },
+  'Expansion Region': { minRadius: 1000000, maxRadius: 1500000, minHeight: -120000, maxHeight: 120000 },
+  'Mid Rim': { minRadius: 1500000, maxRadius: 2400000, minHeight: -160000, maxHeight: 160000 },
+  'Outer Rim Territories': { minRadius: 2400000, maxRadius: 3600000, minHeight: -200000, maxHeight: 200000 },
+  'Outer Rim': { minRadius: 2400000, maxRadius: 3600000, minHeight: -200000, maxHeight: 200000 },
+  'Wild Space': { minRadius: 3600000, maxRadius: 4000000, minHeight: -240000, maxHeight: 240000 },
+  'Unknown Regions': { minRadius: 3600000, maxRadius: 4000000, minHeight: -240000, maxHeight: 240000 },
+  'Hutt Space': { minRadius: 2800000, maxRadius: 3800000, minHeight: -180000, maxHeight: 180000 },
+  'Corporate Sector': { minRadius: 1600000, maxRadius: 2600000, minHeight: -170000, maxHeight: 170000 }
 };
 
 // Default bounds for unknown regions
-const DEFAULT_BOUNDS: RegionBounds = { minRadius: 20000, maxRadius: 36000, minHeight: -2000, maxHeight: 2000 };
+const DEFAULT_BOUNDS: RegionBounds = { minRadius: 2000000, maxRadius: 3600000, minHeight: -200000, maxHeight: 200000 };
 
 // Scale factor: 1 unit = 25 light-years (total disk = 100,000 light-years diameter)
 const SCALE_FACTOR = 25;
@@ -180,7 +180,7 @@ export function getRegionBounds(region: string): RegionBounds {
 export function validateCoordinates(coords: GalacticCoordinates3D): boolean {
   const radius = Math.sqrt(coords.x * coords.x + coords.z * coords.z);
   return (
-    radius <= 2000 && // Within galactic disk radius (100,000 light-years)
-    Math.abs(coords.y) <= 120    // Within galactic disk height
+    radius <= 4000000 && // Within galactic disk radius (100,000 light-years)
+    Math.abs(coords.y) <= 240000    // Within galactic disk height
   );
 }
