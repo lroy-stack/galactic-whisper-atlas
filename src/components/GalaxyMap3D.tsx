@@ -35,7 +35,10 @@ function SystemMarker({ system, onSelect, selected }: SystemMarkerProps) {
 
   const regionData = GALACTIC_REGIONS[system.region] || GALACTIC_REGIONS['Unknown Regions'];
   const color = regionData.color;
-  const size = Math.max(0.3, system.significance * 0.15);
+  // **ENHANCED**: Larger base size and more visible scaling
+  const baseSize = Math.max(2.0, system.significance * 0.4);
+  const populationBonus = system.population ? Math.min(1.0, Math.log10(system.population || 1) / 10) : 0;
+  const size = baseSize + populationBonus;
 
   return (
     <group position={system.coordinates}>
@@ -52,13 +55,13 @@ function SystemMarker({ system, onSelect, selected }: SystemMarkerProps) {
         />
       </mesh>
       
-      {/* Glow effect */}
-      <mesh scale={size * 1.5}>
+      {/* Enhanced glow effect */}
+      <mesh scale={size * 2.0}>
         <sphereGeometry args={[1, 16, 16]} />
         <meshBasicMaterial 
           color={color}
           transparent
-          opacity={selected ? 0.3 : 0.1}
+          opacity={selected ? 0.5 : 0.25}
         />
       </mesh>
 

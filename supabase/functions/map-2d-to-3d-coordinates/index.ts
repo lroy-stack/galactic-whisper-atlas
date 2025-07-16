@@ -128,13 +128,24 @@ function convert2DTo3D(
   if (!parsed) return null;
   
   // Convert 2D coordinates to galactic disk position
-  const angle = letterToAngle(parsed.letter);
-  const radius = numberToRadius(parsed.number, region);
+  const baseAngle = letterToAngle(parsed.letter);
+  const baseRadius = numberToRadius(parsed.number, region);
   const height = calculateHeight(region, systemName, population, classification);
   
+  // **NEW**: Add unique dispersion within grid cell to prevent stacking
+  const gridSeed = hashString(systemName + gridCoordinates + region);
+  const cellVariation = seededRandom(gridSeed);
+  
+  // Disperse within grid cell boundaries (±8% radius and ±7.5° angle)
+  const radiusDispersion = (cellVariation - 0.5) * 0.16; // ±8%
+  const angleDispersion = (seededRandom(gridSeed * 2) - 0.5) * 0.26; // ±7.5° in radians
+  
+  const dispersedRadius = baseRadius * (1 + radiusDispersion);
+  const dispersedAngle = baseAngle + angleDispersion;
+  
   // Convert polar coordinates to Cartesian (X, Z for disk plane, Y for height)
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
+  const x = Math.cos(dispersedAngle) * dispersedRadius;
+  const z = Math.sin(dispersedAngle) * dispersedRadius;
   const y = height;
   
   return { x, y, z };

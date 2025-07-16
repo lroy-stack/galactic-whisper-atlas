@@ -200,6 +200,7 @@ function calculateHeight(
 
 /**
  * Convert 2D galactic grid coordinates to 3D galactic disk coordinates
+ * **ENHANCED**: Adds unique dispersion within grid cells to prevent stacking
  */
 export function galacticCoordinatesToXYZ(
   gridCoordinates: string,
@@ -215,9 +216,20 @@ export function galacticCoordinatesToXYZ(
   }
   
   // Convert 2D coordinates to galactic disk position
-  const angle = letterToAngle(parsed.letter);
-  const radius = numberToRadius(parsed.number, region);
+  const baseAngle = letterToAngle(parsed.letter);
+  const baseRadius = numberToRadius(parsed.number, region);
   const height = calculateHeight(region, systemName, population, classification);
+  
+  // **NEW**: Add unique dispersion within grid cell to prevent stacking
+  const gridSeed = hashString(systemName + gridCoordinates + region);
+  const cellVariation = seededRandom(gridSeed);
+  
+  // Disperse within grid cell boundaries (±8% radius and ±7.5° angle)
+  const radiusDispersion = (cellVariation - 0.5) * 0.16; // ±8%
+  const angleDispersion = (seededRandom(gridSeed * 2) - 0.5) * 0.26; // ±7.5° in radians
+  
+  const dispersedRadius = baseRadius * (1 + radiusDispersion);
+  const dispersedAngle = baseAngle + angleDispersion;
   
   // **STAR WARS**: Five-arm spiral galaxy structure
   const spiralArms = 5;
@@ -228,23 +240,24 @@ export function galacticCoordinatesToXYZ(
     // Systems in this region prefer a specific spiral arm
     const preferredArmAngle = (regionConfig.spiralArm * 2 * Math.PI) / spiralArms;
     const spiralTightness = 0.0008; // How tightly wound the spiral is
-    const armCurve = radius * spiralTightness;
+    const armCurve = dispersedRadius * spiralTightness;
     
     // Calculate the angle offset for this spiral arm at this radius
     const armAngleAtRadius = preferredArmAngle + armCurve;
     
     // Apply spiral bias - systems tend to cluster along spiral arms
-    const spiralBias = Math.cos(angle - armAngleAtRadius) * 0.15; // ±15% radius adjustment
-    spiralOffset = spiralBias * radius;
+    const spiralBias = Math.cos(dispersedAngle - armAngleAtRadius) * 0.15; // ±15% radius adjustment
+    spiralOffset = spiralBias * dispersedRadius;
     
     // Add some randomness to prevent perfect alignment
-    const randomness = (seededRandom(hashString(systemName + 'spiral')) - 0.5) * 0.05 * radius;
+    const randomness = (seededRandom(hashString(systemName + 'spiral')) - 0.5) * 0.05 * dispersedRadius;
     spiralOffset += randomness;
   }
   
   // Convert polar coordinates to Cartesian (X, Z for disk plane, Y for height)
-  const x = Math.cos(angle) * (radius + spiralOffset);
-  const z = Math.sin(angle) * (radius + spiralOffset);
+  const finalRadius = dispersedRadius + spiralOffset;
+  const x = Math.cos(dispersedAngle) * finalRadius;
+  const z = Math.sin(dispersedAngle) * finalRadius;
   const y = height;
   
   return { x, y, z };
