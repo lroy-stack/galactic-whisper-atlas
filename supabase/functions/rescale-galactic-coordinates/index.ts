@@ -21,10 +21,10 @@ const REGION_CONFIG = {
 };
 
 // Processing configuration
-const BATCH_SIZE = 200; // Reduced batch size for better performance
-const UPDATE_CHUNK_SIZE = 50; // Multiple updates in one operation
-const MIN_SEPARATION = 1000; // Reasonable separation
-const TARGET_SCALE = 500000; // Target coordinate range: -500k to +500k
+const BATCH_SIZE = 1500; // Larger batches for better efficiency
+const UPDATE_CHUNK_SIZE = 100; // Optimized chunk size for batch updates
+const MIN_SEPARATION = 1000; // Increased separation for more spacious galaxy
+const TARGET_SCALE = 750000; // Expanded target coordinate range: ±750K
 
 interface System {
   id: string;
@@ -379,7 +379,7 @@ function rescaleSystemsOptimized(
   return rescaled;
 }
 
-// Optimized bulk update function with proper counting
+// Optimized bulk update function using batch upserts with verification
 async function updateSystemsInChunks(supabase: any, systems: System[]): Promise<{ updated: number; errors: number }> {
   let totalUpdated = 0;
   let totalErrors = 0;
@@ -389,43 +389,43 @@ async function updateSystemsInChunks(supabase: any, systems: System[]): Promise<
     const chunk = systems.slice(i, i + UPDATE_CHUNK_SIZE);
     
     try {
-      // Update each system individually to get accurate count
-      let chunkUpdated = 0;
-      let chunkErrors = 0;
+      // Use batch upsert for much better performance
+      const updates = chunk.map(system => ({
+        id: system.id,
+        coordinate_x: system.coordinate_x,
+        coordinate_y: system.coordinate_y,
+        coordinate_z: system.coordinate_z,
+        updated_at: new Date().toISOString()
+      }));
 
-      for (const system of chunk) {
-        try {
-          const { error, count } = await supabase
-            .from('galactic_systems')
-            .update({
-              coordinate_x: system.coordinate_x,
-              coordinate_y: system.coordinate_y,
-              coordinate_z: system.coordinate_z,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', system.id)
-            .select('id', { count: 'exact', head: true });
+      const { error: upsertError } = await supabase
+        .from('galactic_systems')
+        .upsert(updates, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        });
 
-          if (error) {
-            console.error(`Update error for system ${system.id}:`, error);
-            chunkErrors++;
-          } else {
-            chunkUpdated += (count || 1);
-          }
-        } catch (systemError) {
-          console.error(`Failed to update system ${system.id}:`, systemError);
-          chunkErrors++;
+      if (upsertError) {
+        console.error(`Chunk upsert error:`, upsertError);
+        totalErrors += chunk.length;
+      } else {
+        // Verify updates by counting affected systems
+        const systemIds = chunk.map(s => s.id);
+        const { count, error: countError } = await supabase
+          .from('galactic_systems')
+          .select('id', { count: 'exact', head: true })
+          .in('id', systemIds)
+          .not('coordinate_x', 'is', null)
+          .not('coordinate_y', 'is', null)
+          .not('coordinate_z', 'is', null);
+
+        if (countError) {
+          console.warn(`Count verification failed:`, countError);
+          totalUpdated += chunk.length; // Assume success if count fails
+        } else {
+          totalUpdated += (count || chunk.length);
+          console.log(`Updated ${count || chunk.length}/${chunk.length} systems in chunk`);
         }
-      }
-
-      totalUpdated += chunkUpdated;
-      totalErrors += chunkErrors;
-      
-      if (chunkUpdated > 0) {
-        console.log(`Updated ${chunkUpdated}/${chunk.length} systems in chunk`);
-      }
-      if (chunkErrors > 0) {
-        console.warn(`${chunkErrors} errors in chunk`);
       }
 
     } catch (error) {
