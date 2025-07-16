@@ -1,6 +1,7 @@
 import React from 'react';
 import { getAllRegionConfigs } from '@/lib/galacticCoordinates';
 import { Text } from '@react-three/drei';
+import * as THREE from 'three';
 
 export default function GalacticRegions() {
   const regions = getAllRegionConfigs();
@@ -18,9 +19,9 @@ export default function GalacticRegions() {
               <ringGeometry args={[config.minRadius, config.maxRadius, 64]} />
               <meshBasicMaterial 
                 color={config.color}
-                transparent
+                transparent={true}
                 opacity={0.1}
-                side={2}
+                side={THREE.DoubleSide}
               />
             </mesh>
             

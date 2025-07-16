@@ -24,7 +24,7 @@ export default function GalacticCore() {
         <sphereGeometry args={[8, 32, 32]} />
         <meshBasicMaterial 
           color="#FFD700"
-          transparent
+          transparent={true}
           opacity={0.8}
         />
       </mesh>
@@ -34,9 +34,9 @@ export default function GalacticCore() {
         <ringGeometry args={[12, 50, 64]} />
         <meshBasicMaterial 
           color="#FFA500"
-          transparent
+          transparent={true}
           opacity={0.2}
-          side={2}
+          side={THREE.DoubleSide}
         />
       </mesh>
       
@@ -45,7 +45,7 @@ export default function GalacticCore() {
         <sphereGeometry args={[100, 32, 32]} />
         <meshBasicMaterial 
           color="#FFD700"
-          transparent
+          transparent={true}
           opacity={0.1}
         />
       </mesh>

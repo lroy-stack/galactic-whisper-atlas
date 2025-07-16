@@ -28,9 +28,8 @@ export default function SpiralArms() {
           points={arm.points}
           color={arm.color}
           lineWidth={2}
-          transparent
+          transparent={true}
           opacity={0.6}
-          dashed={false}
         />
       ))}
       
@@ -42,7 +41,7 @@ export default function SpiralArms() {
               <sphereGeometry args={[2, 8, 8]} />
               <meshBasicMaterial 
                 color={arm.color}
-                transparent
+                transparent={true}
                 opacity={0.4}
               />
             </mesh>
