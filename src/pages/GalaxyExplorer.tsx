@@ -3,20 +3,22 @@ import GalaxyMap3D from '@/components/GalaxyMap3D';
 import SystemDetails from '@/components/SystemDetails';
 import AIAgent from '@/components/AIAgent';
 import SystemDataCompletion from '@/components/SystemDataCompletion';
-import CoordinateCalculation from '@/components/CoordinateCalculation';
+import CoordinateCleaner from '@/components/CoordinateCleaner';
+import CoordinateMapper from '@/components/CoordinateMapper';
 import CoordinateTest from '@/components/CoordinateTest';
 
 import SystemRelationshipAnalysis from '@/components/SystemRelationshipAnalysis';
 import { StarSystem } from '@/data/galaxyData';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Settings, GitBranch } from 'lucide-react';
+import { Settings, GitBranch, Trash2, Map } from 'lucide-react';
 import { useGalacticData } from '@/hooks/useGalacticData';
 
 export default function GalaxyExplorer() {
   const [selectedSystem, setSelectedSystem] = useState<StarSystem | null>(null);
   const [showDataCompletion, setShowDataCompletion] = useState(false);
-  const [showCoordinateCalculation, setShowCoordinateCalculation] = useState(false);
+  const [showCoordinateCleaner, setShowCoordinateCleaner] = useState(false);
+  const [showCoordinateMapper, setShowCoordinateMapper] = useState(false);
   const [showCoordinateTest, setShowCoordinateTest] = useState(false);
   
   const [showRelationshipAnalysis, setShowRelationshipAnalysis] = useState(false);
@@ -67,11 +69,20 @@ export default function GalaxyExplorer() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowCoordinateCalculation(!showCoordinateCalculation)}
+                  onClick={() => setShowCoordinateCleaner(!showCoordinateCleaner)}
                   className="flex items-center gap-2"
                 >
-                  <Settings className="h-4 w-4" />
-                  Coordenadas 3D
+                  <Trash2 className="h-4 w-4" />
+                  Limpiar Coordenadas
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCoordinateMapper(!showCoordinateMapper)}
+                  className="flex items-center gap-2"
+                >
+                  <Map className="h-4 w-4" />
+                  Mapear Coordenadas
                 </Button>
                 <Button
                   variant="outline"
@@ -128,19 +139,36 @@ export default function GalaxyExplorer() {
           </div>
         )}
 
-        {/* Coordinate Calculation Modal Overlay */}
-        {showCoordinateCalculation && (
+        {/* Coordinate Cleaner Modal Overlay */}
+        {showCoordinateCleaner && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
             <div className="relative">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowCoordinateCalculation(false)}
+                onClick={() => setShowCoordinateCleaner(false)}
                 className="absolute -top-2 -right-2 z-30"
               >
                 ✕
               </Button>
-              <CoordinateCalculation />
+              <CoordinateCleaner />
+            </div>
+          </div>
+        )}
+
+        {/* Coordinate Mapper Modal Overlay */}
+        {showCoordinateMapper && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCoordinateMapper(false)}
+                className="absolute -top-2 -right-2 z-30"
+              >
+                ✕
+              </Button>
+              <CoordinateMapper />
             </div>
           </div>
         )}
