@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { galacticCoordinatesToXYZ, validateCoordinates, getRegionZBounds } from '@/lib/galacticCoordinates';
+import { galacticCoordinatesToXYZ, validateCoordinates, getRegionBounds } from '@/lib/galacticCoordinates';
 import { TestTube, MapPin, Calculator } from 'lucide-react';
 
 interface TestCase {
@@ -106,14 +106,14 @@ export default function CoordinateTest() {
         test: testCase,
         result: {
           ...result,
-          // Convert to light-years for display
-          x_ly: result.x,
-          y_ly: result.y,
-          z_ly: result.z,
-          // Convert to scene units (1:5000 scale)
-          x_scene: result.x / 5000,
-          y_scene: result.y / 5000,
-          z_scene: result.z / 5000
+          // Convert to light-years for display (25 light-years per unit)
+          x_ly: result.x * 25,
+          y_ly: result.y * 25,
+          z_ly: result.z * 25,
+          // Keep raw units for 3D scene
+          x_scene: result.x,
+          y_scene: result.y,
+          z_scene: result.z
         },
         valid,
         error: valid ? undefined : "Coordinates out of expected bounds"
@@ -139,8 +139,8 @@ export default function CoordinateTest() {
   };
 
   const getRegionInfo = (region: string) => {
-    const bounds = getRegionZBounds(region);
-    return `Z: ${bounds.min.toLocaleString()} to ${bounds.max.toLocaleString()} ly`;
+    const bounds = getRegionBounds(region);
+    return `Radius: ${bounds.minRadius}-${bounds.maxRadius}, Height: ${bounds.minHeight} to ${bounds.maxHeight}`;
   };
 
   return (
@@ -285,9 +285,9 @@ export default function CoordinateTest() {
         <div className="text-xs text-muted-foreground space-y-1">
           <p><strong>Información del Test:</strong></p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Coordenadas válidas: X ±70,000 ly, Y ±65,000 ly, Z ±25,000 ly</li>
-            <li>Escala 3D: 1 unidad = 5,000 años luz</li>
-            <li>Sistemas más poblados tienden hacia el plano galáctico (Z cerca de 0)</li>
+            <li>Coordenadas válidas: Radio ≤ 2000 unidades, Altura ≤ ±120 unidades</li>
+            <li>Escala 3D: 1 unidad = 25 años luz (disco de 100,000 años luz)</li>
+            <li>Sistemas más poblados tienden hacia el plano galáctico (Y cerca de 0)</li>
             <li>Tipos "Capital/Trade Hub" se centralizan, "Frontier/Mining" se dispersan</li>
             <li>Cada sistema mantiene posición consistente basada en su nombre</li>
           </ul>

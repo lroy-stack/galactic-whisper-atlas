@@ -6,30 +6,39 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface RescalingResult {
+interface ConversionResult {
   success: boolean;
   message: string;
   details?: {
     totalSystems: number;
-    updatedSystems: number;
-    originalBounds: any;
-    galacticCenter: any;
-    regionCenters: string[];
+    convertedSystems: number;
+    conversionErrors: number;
+    regionStats: Record<string, number>;
+    validation: {
+      withinBounds: number;
+      outOfBounds: number;
+    };
+    newCoordinateSystem: {
+      scale: string;
+      diskDiameter: string;
+      diskHeight: string;
+      coordinate_system: string;
+    };
   };
   error?: string;
 }
 
 export function CoordinateRescaling() {
-  const [isRescaling, setIsRescaling] = useState(false);
-  const [result, setResult] = useState<RescalingResult | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+  const [result, setResult] = useState<ConversionResult | null>(null);
   const { toast } = useToast();
 
-  const handleRescaling = async () => {
-    setIsRescaling(true);
+  const handleConversion = async () => {
+    setIsConverting(true);
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('rescale-galactic-coordinates');
+      const { data, error } = await supabase.functions.invoke('convert-2d-to-3d-coordinates');
 
       if (error) {
         throw new Error(error.message);
@@ -39,12 +48,12 @@ export function CoordinateRescaling() {
       
       if (data.success) {
         toast({
-          title: "Coordinates Rescaled Successfully",
-          description: `Updated ${data.details?.updatedSystems} systems out of ${data.details?.totalSystems}`,
+          title: "Coordinates Converted Successfully",
+          description: `Converted ${data.details?.convertedSystems} systems to 3D galactic disk coordinates`,
         });
       } else {
         toast({
-          title: "Rescaling Failed",
+          title: "Conversion Failed",
           description: data.message,
           variant: "destructive",
         });
@@ -53,7 +62,7 @@ export function CoordinateRescaling() {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setResult({
         success: false,
-        message: 'Failed to rescale coordinates',
+        message: 'Failed to convert coordinates',
         error: errorMessage
       });
       
@@ -63,7 +72,7 @@ export function CoordinateRescaling() {
         variant: "destructive",
       });
     } finally {
-      setIsRescaling(false);
+      setIsConverting(false);
     }
   };
 
@@ -72,47 +81,48 @@ export function CoordinateRescaling() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
-          Galactic Coordinate Rescaling
+          2D → 3D Galactic Coordinate Conversion
         </CardTitle>
         <CardDescription>
-          Rescale all galactic system coordinates to optimize visualization for 4500+ systems.
-          This will normalize coordinates to a manageable range (-200 to +200) with region-based scaling.
+          Convert existing 2D grid coordinates (L-9, M-12, etc.) to realistic 3D galactic disk coordinates.
+          This creates a proper galactic disk structure with regional distribution based on Star Wars galaxy layout.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <h4 className="font-medium">Rescaling Features:</h4>
+          <h4 className="font-medium">Galactic Disk Structure:</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Deep Core: Max radius 15 units (most compact)</li>
-            <li>• Core Worlds: Max radius 25 units</li>
-            <li>• Inner Rim/Colonies: Max radius 50 units</li>
-            <li>• Mid Rim/Expansion: Max radius 100 units</li>
-            <li>• Outer Rim/Wild Space: Max radius 180-200 units (most dispersed)</li>
-            <li>• Minimum 2.5 unit separation between systems</li>
-            <li>• Maintains relative spatial relationships</li>
+            <li>• <strong>Scale:</strong> 1 unit = 25 light-years (100,000 light-year galaxy)</li>
+            <li>• <strong>Deep Core:</strong> Radius 0-100, Height ±20 units</li>
+            <li>• <strong>Core Worlds:</strong> Radius 100-200, Height ±30 units</li>
+            <li>• <strong>Inner Regions:</strong> Radius 200-750, Height ±40-60 units</li>
+            <li>• <strong>Mid Rim:</strong> Radius 750-1200, Height ±80 units</li>
+            <li>• <strong>Outer Rim:</strong> Radius 1200-1800, Height ±100 units</li>
+            <li>• <strong>Wild Space:</strong> Radius 1800-2000, Height ±120 units</li>
+            <li>• Population & classification affect height placement</li>
           </ul>
         </div>
 
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Warning:</strong> This operation will update coordinates for all galactic systems in the database. 
-            Make sure you want to proceed as this cannot be easily undone.
+            <strong>Warning:</strong> This will convert all existing 2D grid coordinates to 3D galactic disk positions. 
+            The conversion uses the existing grid coordinates (L-9, M-12, etc.) and preserves regional logic.
           </AlertDescription>
         </Alert>
 
         <Button 
-          onClick={handleRescaling} 
-          disabled={isRescaling}
+          onClick={handleConversion} 
+          disabled={isConverting}
           className="w-full"
         >
-          {isRescaling ? (
+          {isConverting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Rescaling Coordinates...
+              Converting to 3D Galactic Disk...
             </>
           ) : (
-            'Start Coordinate Rescaling'
+            'Convert 2D → 3D Galactic Coordinates'
           )}
         </Button>
 
@@ -127,10 +137,23 @@ export function CoordinateRescaling() {
               <div className="space-y-2">
                 <p>{result.message}</p>
                 {result.details && (
-                  <div className="text-sm">
-                    <p>Total Systems: {result.details.totalSystems}</p>
-                    <p>Updated Systems: {result.details.updatedSystems}</p>
-                    <p>Regions Processed: {result.details.regionCenters.join(', ')}</p>
+                  <div className="text-sm space-y-1">
+                    <p><strong>Total Systems:</strong> {result.details.totalSystems}</p>
+                    <p><strong>Converted Systems:</strong> {result.details.convertedSystems}</p>
+                    <p><strong>Conversion Errors:</strong> {result.details.conversionErrors}</p>
+                    <p><strong>Validation:</strong> {result.details.validation.withinBounds} within bounds, {result.details.validation.outOfBounds} out of bounds</p>
+                    <p><strong>Coordinate System:</strong> {result.details.newCoordinateSystem.coordinate_system}</p>
+                    <p><strong>Scale:</strong> {result.details.newCoordinateSystem.scale}</p>
+                    {result.details.regionStats && (
+                      <details className="mt-2">
+                        <summary className="cursor-pointer font-medium">Region Statistics</summary>
+                        <div className="mt-1 pl-2">
+                          {Object.entries(result.details.regionStats).map(([region, count]) => (
+                            <p key={region}>{region}: {count} systems</p>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 )}
                 {result.error && (

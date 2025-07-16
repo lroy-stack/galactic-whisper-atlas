@@ -7,30 +7,36 @@ export interface GalacticCoordinates3D {
   z: number; // Z coordinate in light-years
 }
 
-export interface RegionZBounds {
-  min: number;
-  max: number;
+// Galactic disk structure for realistic 3D positioning
+export interface RegionBounds {
+  minRadius: number; // Minimum distance from galactic center
+  maxRadius: number; // Maximum distance from galactic center
+  minHeight: number; // Minimum height above/below galactic plane
+  maxHeight: number; // Maximum height above/below galactic plane
 }
 
-// Z-axis bounds for different galactic regions (in light-years)
-const REGION_Z_BOUNDS: Record<string, RegionZBounds> = {
-  'Core Worlds': { min: -2500, max: 2500 },
-  'Colonies': { min: -5000, max: 5000 },
-  'Inner Rim': { min: -6000, max: 6000 },
-  'Expansion Region': { min: -7000, max: 7000 },
-  'Mid Rim': { min: -7500, max: 7500 },
-  'Outer Rim': { min: -12500, max: 12500 },
-  'Wild Space': { min: -20000, max: 20000 },
-  'Unknown Regions': { min: -20000, max: 20000 },
-  'Hutt Space': { min: -10000, max: 10000 },
-  'Corporate Sector': { min: -8000, max: 8000 }
+// Define galactic disk structure for each region
+// Scale: ±2000 units = 100,000 light-years (25 light-years per unit)
+const REGION_BOUNDS: Record<string, RegionBounds> = {
+  'Deep Core': { minRadius: 0, maxRadius: 100, minHeight: -20, maxHeight: 20 },
+  'Core Worlds': { minRadius: 100, maxRadius: 200, minHeight: -30, maxHeight: 30 },
+  'Colonies': { minRadius: 200, maxRadius: 350, minHeight: -40, maxHeight: 40 },
+  'Inner Rim': { minRadius: 350, maxRadius: 500, minHeight: -50, maxHeight: 50 },
+  'Expansion Region': { minRadius: 500, maxRadius: 750, minHeight: -60, maxHeight: 60 },
+  'Mid Rim': { minRadius: 750, maxRadius: 1200, minHeight: -80, maxHeight: 80 },
+  'Outer Rim Territories': { minRadius: 1200, maxRadius: 1800, minHeight: -100, maxHeight: 100 },
+  'Outer Rim': { minRadius: 1200, maxRadius: 1800, minHeight: -100, maxHeight: 100 },
+  'Wild Space': { minRadius: 1800, maxRadius: 2000, minHeight: -120, maxHeight: 120 },
+  'Unknown Regions': { minRadius: 1800, maxRadius: 2000, minHeight: -120, maxHeight: 120 },
+  'Hutt Space': { minRadius: 1400, maxRadius: 1900, minHeight: -90, maxHeight: 90 },
+  'Corporate Sector': { minRadius: 800, maxRadius: 1300, minHeight: -85, maxHeight: 85 }
 };
 
-// Default Z bounds for unknown regions
-const DEFAULT_Z_BOUNDS: RegionZBounds = { min: -15000, max: 15000 };
+// Default bounds for unknown regions
+const DEFAULT_BOUNDS: RegionBounds = { minRadius: 1000, maxRadius: 1800, minHeight: -100, maxHeight: 100 };
 
-// Scale factor: 1 unit = 5000 light-years
-const SCALE_FACTOR = 5000;
+// Scale factor: 1 unit = 25 light-years (total disk = 100,000 light-years diameter)
+const SCALE_FACTOR = 25;
 
 /**
  * Simple hash function to generate consistent pseudo-random numbers from a string
@@ -67,72 +73,73 @@ function parseGridCoordinates(gridCoords: string): { letter: string; number: num
 }
 
 /**
- * Convert letter to X coordinate (-65,000 to +65,000 light-years)
+ * Convert letter to angle in the galactic disk (0 to 2π radians)
  */
-function letterToX(letter: string): number {
+function letterToAngle(letter: string): number {
   const charCode = letter.charCodeAt(0) - 65; // A=0, B=1, ..., Z=25
-  // Map A-Z to positions from -65,000 to +65,000 light-years
-  const normalizedPosition = (charCode / 25) * 2 - 1; // -1 to +1
-  return normalizedPosition * 65000;
+  // Map A-Z to angles from 0 to 2π
+  return (charCode / 25) * Math.PI * 2;
 }
 
 /**
- * Convert number to Y coordinate (-60,000 to +60,000 light-years) 
+ * Convert number to radius from galactic center, adjusted by region
  */
-function numberToY(number: number): number {
-  // Map numbers 1-24 to positions from -60,000 to +60,000 light-years
-  const normalizedPosition = ((number - 1) / 23) * 2 - 1; // -1 to +1
-  return normalizedPosition * 60000;
+function numberToRadius(number: number, region: string): number {
+  const bounds = REGION_BOUNDS[region] || DEFAULT_BOUNDS;
+  
+  // Map numbers 1-24 to positions within the region's radius bounds
+  const normalizedPosition = (number - 1) / 23; // 0 to 1
+  return bounds.minRadius + (bounds.maxRadius - bounds.minRadius) * normalizedPosition;
 }
 
 /**
- * Calculate Z coordinate based on region and system properties
+ * Calculate Y coordinate (height above/below galactic plane) based on region and system properties
  */
-function calculateZ(
+function calculateHeight(
   region: string,
   systemName: string,
   population?: number,
   classification?: string
 ): number {
-  const bounds = REGION_Z_BOUNDS[region] || DEFAULT_Z_BOUNDS;
+  const bounds = REGION_BOUNDS[region] || DEFAULT_BOUNDS;
   
   // Use system name as seed for consistent positioning
   const seed = hashString(systemName + region);
   const baseRandom = seededRandom(seed);
   
-  // Base Z position within region bounds
-  let z = bounds.min + (bounds.max - bounds.min) * baseRandom;
+  // Base Y position within region height bounds
+  let y = bounds.minHeight + (bounds.maxHeight - bounds.minHeight) * baseRandom;
   
-  // Adjust Z based on population (more populated = closer to galactic plane)
+  // Adjust Y based on population (more populated = closer to galactic plane)
   if (population && population > 0) {
     const populationFactor = Math.min(Math.log10(population) / 12, 1); // Normalize to 0-1
-    const centeringEffect = (1 - populationFactor) * 0.3; // Up to 30% pull toward center
-    z *= (1 - centeringEffect);
+    const centeringEffect = populationFactor * 0.4; // Up to 40% pull toward center
+    y *= (1 - centeringEffect);
   }
   
-  // Adjust Z based on classification
+  // Adjust Y based on classification
   if (classification) {
     const centralizedTypes = ['Capital', 'Trade Hub', 'Industrial', 'Core World'];
     const frontierTypes = ['Frontier', 'Mining', 'Agricultural', 'Backwater'];
     
     if (centralizedTypes.some(type => classification.includes(type))) {
-      z *= 0.7; // Pull toward galactic plane
+      y *= 0.6; // Pull toward galactic plane
     } else if (frontierTypes.some(type => classification.includes(type))) {
-      z *= 1.3; // Push away from galactic plane
+      y *= 1.4; // Push away from galactic plane
     }
   }
   
-  // Add controlled noise (±10% variation)
-  const noiseSeed = hashString(systemName + 'noise');
-  const noise = (seededRandom(noiseSeed) - 0.5) * 0.2; // -0.1 to +0.1
-  z *= (1 + noise);
+  // Add controlled noise (±15% variation)
+  const noiseSeed = hashString(systemName + 'height');
+  const noise = (seededRandom(noiseSeed) - 0.5) * 0.3; // -0.15 to +0.15
+  y *= (1 + noise);
   
   // Ensure we stay within bounds
-  return Math.max(bounds.min, Math.min(bounds.max, z));
+  return Math.max(bounds.minHeight, Math.min(bounds.maxHeight, y));
 }
 
 /**
- * Convert 2D galactic grid coordinates to 3D space coordinates
+ * Convert 2D galactic grid coordinates to 3D galactic disk coordinates
  */
 export function galacticCoordinatesToXYZ(
   gridCoordinates: string,
@@ -147,27 +154,33 @@ export function galacticCoordinatesToXYZ(
     return null;
   }
   
-  const x = letterToX(parsed.letter);
-  const y = numberToY(parsed.number);
-  const z = calculateZ(region, systemName, population, classification);
+  // Convert 2D coordinates to galactic disk position
+  const angle = letterToAngle(parsed.letter);
+  const radius = numberToRadius(parsed.number, region);
+  const height = calculateHeight(region, systemName, population, classification);
+  
+  // Convert polar coordinates to Cartesian (X, Z for disk plane, Y for height)
+  const x = Math.cos(angle) * radius;
+  const z = Math.sin(angle) * radius;
+  const y = height;
   
   return { x, y, z };
 }
 
 /**
- * Get region Z bounds for reference
+ * Get region bounds for reference
  */
-export function getRegionZBounds(region: string): RegionZBounds {
-  return REGION_Z_BOUNDS[region] || DEFAULT_Z_BOUNDS;
+export function getRegionBounds(region: string): RegionBounds {
+  return REGION_BOUNDS[region] || DEFAULT_BOUNDS;
 }
 
 /**
- * Validate if coordinates are within expected galactic bounds
+ * Validate if coordinates are within expected galactic disk bounds
  */
 export function validateCoordinates(coords: GalacticCoordinates3D): boolean {
+  const radius = Math.sqrt(coords.x * coords.x + coords.z * coords.z);
   return (
-    Math.abs(coords.x) <= 70000 && // Within galactic disk
-    Math.abs(coords.y) <= 65000 && // Within galactic disk  
-    Math.abs(coords.z) <= 25000    // Within reasonable Z bounds
+    radius <= 2000 && // Within galactic disk radius (100,000 light-years)
+    Math.abs(coords.y) <= 120    // Within galactic disk height
   );
 }
