@@ -27,22 +27,22 @@ export default function SpiralArms() {
           key={arm.index}
           points={arm.points}
           color={arm.color}
-          lineWidth={2}
+          lineWidth={1.5}
           transparent={true}
-          opacity={0.6}
+          opacity={0.4}
         />
       ))}
       
-      {/* Spiral arm particle effect */}
+      {/* Simplified spiral arm particle effect */}
       {spiralArms.map((arm) => (
         <group key={`particles-${arm.index}`}>
-          {arm.points.filter((_, index) => index % 3 === 0).map((point, index) => (
+          {arm.points.filter((_, index) => index % 5 === 0).map((point, index) => (
             <mesh key={index} position={point}>
-              <sphereGeometry args={[2, 8, 8]} />
+              <sphereGeometry args={[1.5, 6, 6]} />
               <meshBasicMaterial 
                 color={arm.color}
                 transparent={true}
-                opacity={0.4}
+                opacity={0.2}
               />
             </mesh>
           ))}

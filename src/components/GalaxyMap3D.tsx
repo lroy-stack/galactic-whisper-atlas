@@ -62,11 +62,11 @@ function SystemMarker({ system, onSelect, selected }: SystemMarkerProps) {
         />
       </mesh>
 
-      {/* System name */}
+      {/* System name - scaled appropriately */}
       {(selected || hovered) && (
         <Text
-          position={[0, size * 2, 0]}
-          fontSize={0.8}
+          position={[0, size * 2.5, 0]}
+          fontSize={Math.min(15, Math.max(8, size * 12))}
           color="#FFD700"
           anchorX="center"
           anchorY="middle"
@@ -75,11 +75,11 @@ function SystemMarker({ system, onSelect, selected }: SystemMarkerProps) {
         </Text>
       )}
       
-      {/* Region indicator */}
+      {/* Region indicator - smaller text */}
       {selected && (
         <Text
-          position={[0, size * 2 + 1, 0]}
-          fontSize={0.4}
+          position={[0, size * 2.5 + 12, 0]}
+          fontSize={Math.min(10, Math.max(6, size * 8))}
           color="#87CEEB"
           anchorX="center"
           anchorY="middle"
@@ -102,15 +102,15 @@ function GalaxyBackground() {
 
   return (
     <>
-      {/* Dense star field */}
+      {/* Dense star field - expanded for better coverage */}
       <Stars 
-        radius={3000} 
-        depth={100} 
-        count={10000} 
-        factor={6} 
+        radius={5000} 
+        depth={200} 
+        count={8000} 
+        factor={4} 
         saturation={0} 
         fade 
-        speed={0.2}
+        speed={0.1}
       />
       
       {/* Nebula effects in Unknown Regions */}
@@ -169,16 +169,27 @@ export default function GalaxyMap3D({
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [1500, 800, 1500], fov: 60 }}
+        camera={{ 
+          position: [1500, 800, 1500], 
+          fov: 60,
+          near: 1,
+          far: 15000
+        }}
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          {/* Lighting setup */}
-          <ambientLight intensity={0.3} />
+          {/* Enhanced lighting setup */}
+          <ambientLight intensity={0.4} />
           <directionalLight 
             position={[1000, 1000, 1000]} 
-            intensity={0.5} 
+            intensity={0.3} 
             color="#FFFFFF" 
+          />
+          <pointLight 
+            position={[0, 500, 0]} 
+            intensity={0.2} 
+            color="#4169E1" 
+            distance={3000}
           />
           
           {/* Galaxy structure */}
@@ -217,12 +228,14 @@ export default function GalaxyMap3D({
             enablePan
             enableZoom
             enableRotate
-            zoomSpeed={1.2}
-            panSpeed={2.0}
-            rotateSpeed={0.8}
-            maxDistance={8000}
-            minDistance={100}
+            zoomSpeed={0.8}
+            panSpeed={1.5}
+            rotateSpeed={0.6}
+            maxDistance={12000}
+            minDistance={50}
             target={[0, 0, 0]}
+            enableDamping
+            dampingFactor={0.05}
           />
         </Suspense>
       </Canvas>

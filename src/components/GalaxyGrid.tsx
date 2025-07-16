@@ -52,17 +52,17 @@ export default function GalaxyGrid() {
         <group key={line.key}>
           <Line
             points={line.points}
-            color="#444444"
+            color="#666666"
             transparent
-            opacity={0.3}
-            lineWidth={1}
+            opacity={0.15}
+            lineWidth={0.8}
           />
           
-          {/* Labels */}
+          {/* Labels - smaller and less prominent */}
           <Text
             position={line.labelPosition}
-            fontSize={line.key.startsWith('h-') ? 30 : 25}
-            color="#CCCCCC"
+            fontSize={line.key.startsWith('h-') ? 18 : 15}
+            color="#999999"
             anchorX="center"
             anchorY="middle"
           >
@@ -71,10 +71,10 @@ export default function GalaxyGrid() {
         </group>
       ))}
 
-      {/* Galaxy center marker */}
+      {/* Galaxy center marker - more subtle */}
       <Text
-        position={[0, 30, 0]}
-        fontSize={40}
+        position={[0, 25, 0]}
+        fontSize={20}
         color="#FFD700"
         anchorX="center"
         anchorY="middle"
