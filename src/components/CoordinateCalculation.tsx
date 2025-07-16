@@ -45,7 +45,7 @@ export default function CoordinateCalculation() {
       while (hasMore) {
         console.log(`🔄 Processing batch starting at offset ${offset}`);
         
-        const { data, error } = await supabase.functions.invoke('calculate-3d-coordinates', {
+        const { data, error } = await supabase.functions.invoke('convert-2d-to-3d-coordinates', {
           body: { batchSize, offset }
         });
 
@@ -174,11 +174,11 @@ export default function CoordinateCalculation() {
             </div>
 
             {/* Show some recent systems */}
-            {lastBatchResults.updatedSystems.length > 0 && (
+            {lastBatchResults.updatedSystems && lastBatchResults.updatedSystems.length > 0 && (
               <div className="space-y-2">
                 <h5 className="text-sm font-medium">Sistemas actualizados recientemente:</h5>
                 <div className="space-y-1 max-h-40 overflow-y-auto">
-                  {lastBatchResults.updatedSystems.slice(0, 5).map((system) => (
+                  {lastBatchResults.updatedSystems?.slice(0, 5).map((system) => (
                     <div key={system.id} className="text-xs bg-muted p-2 rounded">
                       <div className="font-medium">{system.name}</div>
                       <div className="text-muted-foreground">
@@ -189,7 +189,7 @@ export default function CoordinateCalculation() {
                       </div>
                     </div>
                   ))}
-                  {lastBatchResults.updatedSystems.length > 5 && (
+                  {lastBatchResults.updatedSystems && lastBatchResults.updatedSystems.length > 5 && (
                     <div className="text-xs text-muted-foreground text-center">
                       ... y {lastBatchResults.updatedSystems.length - 5} más
                     </div>
