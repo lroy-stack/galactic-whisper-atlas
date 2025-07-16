@@ -15,23 +15,77 @@ export interface RegionBounds {
   maxHeight: number; // Maximum height above/below galactic plane
 }
 
-// Define galactic disk structure for each region
-// **FIXED SCALE**: Realistic galactic proportions (1 unit ≈ 2 light-years)
-// Total galaxy diameter: ~50,000 units (≈100,000 light-years)
-const REGION_BOUNDS: Record<string, RegionBounds> = {
-  'Deep Core': { minRadius: 0, maxRadius: 1250, minHeight: -250, maxHeight: 250 },
-  'Core Worlds': { minRadius: 1250, maxRadius: 2500, minHeight: -375, maxHeight: 375 },
-  'Colonies': { minRadius: 2500, maxRadius: 4375, minHeight: -500, maxHeight: 500 },
-  'Inner Rim': { minRadius: 4375, maxRadius: 6250, minHeight: -625, maxHeight: 625 },
-  'Expansion Region': { minRadius: 6250, maxRadius: 9375, minHeight: -750, maxHeight: 750 },
-  'Mid Rim': { minRadius: 9375, maxRadius: 15000, minHeight: -1000, maxHeight: 1000 },
-  'Outer Rim Territories': { minRadius: 15000, maxRadius: 22500, minHeight: -1250, maxHeight: 1250 },
-  'Outer Rim': { minRadius: 15000, maxRadius: 22500, minHeight: -1250, maxHeight: 1250 },
-  'Wild Space': { minRadius: 22500, maxRadius: 25000, minHeight: -1500, maxHeight: 1500 },
-  'Unknown Regions': { minRadius: 22500, maxRadius: 25000, minHeight: -1500, maxHeight: 1500 },
-  'Hutt Space': { minRadius: 17500, maxRadius: 23750, minHeight: -1125, maxHeight: 1125 },
-  'Corporate Sector': { minRadius: 10000, maxRadius: 16250, minHeight: -1063, maxHeight: 1063 }
+// Star Wars Galactic Regions - Concentric structure from Deep Core to Unknown Regions
+// Scale: 1 unit ≈ 50 light-years for visualization (galaxy diameter ≈ 120,000 ly)
+export interface RegionConfig extends RegionBounds {
+  color: string;
+  density: number;
+  spiralArm?: number; // Which spiral arm this region favors (0-4)
+}
+
+const STAR_WARS_REGIONS: Record<string, RegionConfig> = {
+  'Deep Core': { 
+    minRadius: 0, maxRadius: 200, minHeight: -25, maxHeight: 25,
+    color: '#FFD700', density: 0.8, spiralArm: undefined // Central, no spiral preference
+  },
+  'Core Worlds': { 
+    minRadius: 200, maxRadius: 500, minHeight: -40, maxHeight: 40,
+    color: '#FFA500', density: 0.7, spiralArm: undefined
+  },
+  'Colonies': { 
+    minRadius: 500, maxRadius: 800, minHeight: -50, maxHeight: 50,
+    color: '#9370DB', density: 0.6, spiralArm: 0
+  },
+  'Inner Rim': { 
+    minRadius: 800, maxRadius: 1200, minHeight: -60, maxHeight: 60,
+    color: '#DEB887', density: 0.5, spiralArm: 1
+  },
+  'Expansion Region': { 
+    minRadius: 1200, maxRadius: 1500, minHeight: -70, maxHeight: 70,
+    color: '#87CEEB', density: 0.4, spiralArm: 2
+  },
+  'Mid Rim': { 
+    minRadius: 1500, maxRadius: 1800, minHeight: -75, maxHeight: 75,
+    color: '#FFB6C1', density: 0.3, spiralArm: 3
+  },
+  'Outer Rim Territories': { 
+    minRadius: 1800, maxRadius: 2000, minHeight: -80, maxHeight: 80,
+    color: '#4682B4', density: 0.2, spiralArm: 4
+  },
+  'Outer Rim': { 
+    minRadius: 1800, maxRadius: 2000, minHeight: -80, maxHeight: 80,
+    color: '#4682B4', density: 0.2, spiralArm: 4
+  },
+  'Wild Space': { 
+    minRadius: 2000, maxRadius: 2200, minHeight: -90, maxHeight: 90,
+    color: '#696969', density: 0.1, spiralArm: undefined
+  },
+  'Unknown Regions': { 
+    minRadius: 2200, maxRadius: 2400, minHeight: -100, maxHeight: 100,
+    color: '#483D8B', density: 0.05, spiralArm: undefined
+  },
+  'Hutt Space': { 
+    minRadius: 1600, maxRadius: 1900, minHeight: -75, maxHeight: 75,
+    color: '#8B4513', density: 0.25, spiralArm: 3
+  },
+  'Corporate Sector': { 
+    minRadius: 1400, maxRadius: 1700, minHeight: -70, maxHeight: 70,
+    color: '#2F4F4F', density: 0.3, spiralArm: 2
+  }
 };
+
+// Legacy compatibility - convert to old format
+const REGION_BOUNDS: Record<string, RegionBounds> = Object.fromEntries(
+  Object.entries(STAR_WARS_REGIONS).map(([key, config]) => [
+    key, 
+    {
+      minRadius: config.minRadius,
+      maxRadius: config.maxRadius,
+      minHeight: config.minHeight,
+      maxHeight: config.maxHeight
+    }
+  ])
+);
 
 // Default bounds for unknown regions
 const DEFAULT_BOUNDS: RegionBounds = { minRadius: 12500, maxRadius: 22500, minHeight: -1250, maxHeight: 1250 };
@@ -169,10 +223,28 @@ export function galacticCoordinatesToXYZ(
   const radius = numberToRadius(parsed.number, region);
   const height = calculateHeight(region, systemName, population, classification);
   
-  // **ENHANCED**: Add subtle spiral arm structure to galactic disk
-  const spiralInfluence = 0.02; // 2% spiral effect
-  const spiralArms = 2; // Two-arm spiral galaxy
-  const spiralOffset = Math.sin(angle * spiralArms + radius * 0.0001) * spiralInfluence * radius;
+  // **STAR WARS**: Five-arm spiral galaxy structure
+  const spiralArms = 5;
+  const regionConfig = STAR_WARS_REGIONS[region];
+  let spiralOffset = 0;
+  
+  if (regionConfig?.spiralArm !== undefined) {
+    // Systems in this region prefer a specific spiral arm
+    const preferredArmAngle = (regionConfig.spiralArm * 2 * Math.PI) / spiralArms;
+    const spiralTightness = 0.0008; // How tightly wound the spiral is
+    const armCurve = radius * spiralTightness;
+    
+    // Calculate the angle offset for this spiral arm at this radius
+    const armAngleAtRadius = preferredArmAngle + armCurve;
+    
+    // Apply spiral bias - systems tend to cluster along spiral arms
+    const spiralBias = Math.cos(angle - armAngleAtRadius) * 0.15; // ±15% radius adjustment
+    spiralOffset = spiralBias * radius;
+    
+    // Add some randomness to prevent perfect alignment
+    const randomness = (seededRandom(hashString(systemName + 'spiral')) - 0.5) * 0.05 * radius;
+    spiralOffset += randomness;
+  }
   
   // Convert polar coordinates to Cartesian (X, Z for disk plane, Y for height)
   const x = Math.cos(angle) * (radius + spiralOffset);
@@ -187,6 +259,45 @@ export function galacticCoordinatesToXYZ(
  */
 export function getRegionBounds(region: string): RegionBounds {
   return REGION_BOUNDS[region] || DEFAULT_BOUNDS;
+}
+
+/**
+ * Get full region configuration including color and spiral arm data
+ */
+export function getRegionConfig(region: string): RegionConfig {
+  return STAR_WARS_REGIONS[region] || { 
+    ...DEFAULT_BOUNDS, 
+    color: '#FFFFFF', 
+    density: 0.1 
+  };
+}
+
+/**
+ * Get all region configurations for visualization
+ */
+export function getAllRegionConfigs(): Record<string, RegionConfig> {
+  return STAR_WARS_REGIONS;
+}
+
+/**
+ * Generate spiral arm coordinates for visualization
+ */
+export function generateSpiralArmPoints(armIndex: number, maxRadius: number = 2400): Array<[number, number, number]> {
+  const points: Array<[number, number, number]> = [];
+  const spiralArms = 5;
+  const baseAngle = (armIndex * 2 * Math.PI) / spiralArms;
+  const spiralTightness = 0.0008;
+  
+  for (let radius = 300; radius <= maxRadius; radius += 50) {
+    const angle = baseAngle + radius * spiralTightness;
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    const y = (Math.sin(radius * 0.01) * 10) - 5; // Slight vertical wave
+    
+    points.push([x, y, z]);
+  }
+  
+  return points;
 }
 
 /**

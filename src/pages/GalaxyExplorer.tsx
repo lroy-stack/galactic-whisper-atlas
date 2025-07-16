@@ -23,6 +23,8 @@ export default function GalaxyExplorer() {
   
   const [showRelationshipAnalysis, setShowRelationshipAnalysis] = useState(false);
   const [showRelationships, setShowRelationships] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showSpiralArms, setShowSpiralArms] = useState(true);
   
   const { refresh } = useGalacticData();
 
@@ -38,11 +40,13 @@ export default function GalaxyExplorer() {
     <div className="h-screen flex bg-background">
       {/* Main 3D Map */}
       <div className="flex-1 relative">
-        <GalaxyMap3D 
-          selectedSystem={selectedSystem}
-          onSystemSelect={handleSystemSelect}
-          showRelationships={showRelationships}
-        />
+          <GalaxyMap3D 
+            selectedSystem={selectedSystem}
+            onSystemSelect={handleSystemSelect}
+            showRelationships={showRelationships}
+            showGrid={showGrid}
+            showSpiralArms={showSpiralArms}
+          />
         
         {/* Header Overlay */}
         <div className="absolute top-4 left-4 right-4 z-10">
@@ -105,8 +109,8 @@ export default function GalaxyExplorer() {
               </div>
             </div>
             
-            {/* Relationship Visualization Controls */}
-            <div className="mt-4 flex items-center gap-4">
+            {/* Visualization Controls */}
+            <div className="mt-4 flex items-center gap-6 flex-wrap">
               <div className="flex items-center gap-2">
                 <Switch 
                   checked={showRelationships}
@@ -115,7 +119,29 @@ export default function GalaxyExplorer() {
                 />
                 <label htmlFor="show-relationships" className="text-sm font-medium flex items-center gap-2">
                   <GitBranch className="h-4 w-4" />
-                  Mostrar Relaciones Galácticas
+                  Relaciones
+                </label>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={showGrid}
+                  onCheckedChange={setShowGrid}
+                  id="show-grid"
+                />
+                <label htmlFor="show-grid" className="text-sm font-medium">
+                  Grid
+                </label>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={showSpiralArms}
+                  onCheckedChange={setShowSpiralArms}
+                  id="show-spiral-arms"
+                />
+                <label htmlFor="show-spiral-arms" className="text-sm font-medium">
+                  Brazos Espirales
                 </label>
               </div>
             </div>

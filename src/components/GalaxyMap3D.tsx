@@ -6,6 +6,11 @@ import { STAR_SYSTEMS, GALACTIC_REGIONS, StarSystem, GalacticRegion, SystemType,
 import { supabase } from '@/integrations/supabase/client';
 import { useGalacticData } from '@/hooks/useGalacticData';
 import RelationshipLines from './RelationshipLines';
+import GalacticRegions from './GalacticRegions';
+import SpiralArms from './SpiralArms';
+import HyperspaceRoutes from './HyperspaceRoutes';
+import GalacticCore from './GalacticCore';
+import GalaxyGrid from './GalaxyGrid';
 
 interface SystemMarkerProps {
   system: StarSystem;
@@ -86,78 +91,44 @@ function SystemMarker({ system, onSelect, selected }: SystemMarkerProps) {
   );
 }
 
-function RegionVolumes() {
-  const regions = useMemo(() => {
-    const regionBounds: Record<string, { min: THREE.Vector3; max: THREE.Vector3; systems: StarSystem[] }> = {};
-    
-    // Calculate bounds for each region based on systems
-    STAR_SYSTEMS.forEach(system => {
-      const regionName = system.region;
-      if (!regionBounds[regionName]) {
-        regionBounds[regionName] = {
-          min: new THREE.Vector3(Infinity, Infinity, Infinity),
-          max: new THREE.Vector3(-Infinity, -Infinity, -Infinity),
-          systems: []
-        };
-      }
-      
-      const pos = new THREE.Vector3(...system.coordinates);
-      regionBounds[regionName].min.min(pos);
-      regionBounds[regionName].max.max(pos);
-      regionBounds[regionName].systems.push(system);
-    });
-
-    return Object.entries(regionBounds).map(([name, bounds]) => ({
-      name: name as keyof typeof GALACTIC_REGIONS,
-      center: bounds.min.clone().add(bounds.max).multiplyScalar(0.5),
-      size: bounds.max.clone().sub(bounds.min).addScalar(10),
-      color: GALACTIC_REGIONS[name as keyof typeof GALACTIC_REGIONS].color
-    }));
-  }, []);
-
-  return (
-    <>
-      {regions.map((region) => (
-        <mesh key={region.name} position={region.center.toArray()}>
-          <boxGeometry args={region.size.toArray()} />
-          <meshBasicMaterial 
-            color={region.color}
-            transparent
-            opacity={0.05}
-            wireframe
-          />
-        </mesh>
-      ))}
-    </>
-  );
-}
+// Removed RegionVolumes - replaced by GalacticRegions component
 
 function GalaxyBackground() {
   const { scene } = useThree();
   
   React.useEffect(() => {
-    const loader = new THREE.TextureLoader();
     scene.background = new THREE.Color('#0a0a0f');
   }, [scene]);
 
   return (
     <>
+      {/* Dense star field */}
       <Stars 
-        radius={300} 
-        depth={50} 
-        count={5000} 
-        factor={4} 
+        radius={3000} 
+        depth={100} 
+        count={10000} 
+        factor={6} 
         saturation={0} 
         fade 
+        speed={0.2}
       />
       
-      {/* Central galactic core glow */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[15, 32, 32]} />
+      {/* Nebula effects in Unknown Regions */}
+      <mesh position={[2000, 0, 2000]}>
+        <sphereGeometry args={[300, 32, 32]} />
         <meshBasicMaterial 
-          color="#FFD700"
+          color="#483D8B"
           transparent
-          opacity={0.1}
+          opacity={0.05}
+        />
+      </mesh>
+      
+      <mesh position={[-2000, 50, -2000]}>
+        <sphereGeometry args={[250, 32, 32]} />
+        <meshBasicMaterial 
+          color="#696969"
+          transparent
+          opacity={0.03}
         />
       </mesh>
     </>
@@ -168,9 +139,17 @@ interface GalaxyMap3DProps {
   selectedSystem: StarSystem | null;
   onSystemSelect: (system: StarSystem) => void;
   showRelationships?: boolean;
+  showGrid?: boolean;
+  showSpiralArms?: boolean;
 }
 
-export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelationships = false }: GalaxyMap3DProps) {
+export default function GalaxyMap3D({ 
+  selectedSystem, 
+  onSystemSelect, 
+  showRelationships = false,
+  showGrid = true,
+  showSpiralArms = true
+}: GalaxyMap3DProps) {
   const { systems: dbSystems, relationships, loading } = useGalacticData();
 
 
@@ -190,15 +169,30 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [50, 30, 50], fov: 60 }}
+        camera={{ position: [800, 400, 800], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.2} />
-          <pointLight position={[0, 0, 0]} intensity={0.8} color="#FFD700" />
+          {/* Lighting setup */}
+          <ambientLight intensity={0.3} />
+          <directionalLight 
+            position={[1000, 1000, 1000]} 
+            intensity={0.5} 
+            color="#FFFFFF" 
+          />
           
+          {/* Galaxy structure */}
           <GalaxyBackground />
+          <GalacticCore />
+          <GalacticRegions />
           
+          {/* Spiral arms */}
+          {showSpiralArms && <SpiralArms />}
+          
+          {/* Coordinate grid */}
+          {showGrid && <GalaxyGrid />}
+          
+          {/* Star systems */}
           {allSystems.map((system) => (
             <SystemMarker
               key={system.id}
@@ -208,20 +202,26 @@ export default function GalaxyMap3D({ selectedSystem, onSystemSelect, showRelati
             />
           ))}
 
+          {/* Relationships and routes */}
           <RelationshipLines 
             relationships={relationships}
             showRelationships={showRelationships}
+          />
+          
+          <HyperspaceRoutes 
+            systems={allSystems}
+            showRoutes={showRelationships}
           />
           
           <OrbitControls
             enablePan
             enableZoom
             enableRotate
-            zoomSpeed={0.8}
-            panSpeed={1.0}
-            rotateSpeed={0.5}
-            maxDistance={1000}
-            minDistance={5}
+            zoomSpeed={1.2}
+            panSpeed={2.0}
+            rotateSpeed={0.8}
+            maxDistance={5000}
+            minDistance={50}
           />
         </Suspense>
       </Canvas>
