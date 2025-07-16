@@ -12,22 +12,26 @@ const BATCH_SIZE = 50;
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-// Region boundaries for galactic positioning
+// Region boundaries for galactic positioning (unified with client)
 interface RegionBounds {
-  zRange: { min: number; max: number };
-  spiralArm?: string;
+  minRadius: number;
+  maxRadius: number;
+  minHeight: number;
+  maxHeight: number;
 }
 
 const REGION_BOUNDS: Record<string, RegionBounds> = {
-  'Deep Core': { zRange: { min: -2500, max: 2500 }, spiralArm: 'central' },
-  'Core Worlds': { zRange: { min: -2500, max: 2500 }, spiralArm: 'central' },
-  'Colonies': { zRange: { min: -5000, max: 5000 }, spiralArm: 'inner' },
-  'Inner Rim': { zRange: { min: -5000, max: 5000 }, spiralArm: 'inner' },
-  'Expansion Region': { zRange: { min: -7500, max: 7500 }, spiralArm: 'middle' },
-  'Mid Rim': { zRange: { min: -7500, max: 7500 }, spiralArm: 'middle' },
-  'Outer Rim': { zRange: { min: -12500, max: 12500 }, spiralArm: 'outer' },
-  'Wild Space': { zRange: { min: -15000, max: 15000 }, spiralArm: 'outer' },
-  'Unknown Regions': { zRange: { min: -15000, max: 15000 }, spiralArm: 'outer' }
+  'Deep Core': { minRadius: 0, maxRadius: 200, minHeight: -25, maxHeight: 25 },
+  'Core Worlds': { minRadius: 200, maxRadius: 500, minHeight: -40, maxHeight: 40 },
+  'Colonies': { minRadius: 500, maxRadius: 800, minHeight: -50, maxHeight: 50 },
+  'Inner Rim': { minRadius: 800, maxRadius: 1200, minHeight: -60, maxHeight: 60 },
+  'Expansion Region': { minRadius: 1200, maxRadius: 1500, minHeight: -70, maxHeight: 70 },
+  'Mid Rim': { minRadius: 1500, maxRadius: 1800, minHeight: -75, maxHeight: 75 },
+  'Outer Rim Territories': { minRadius: 1800, maxRadius: 2200, minHeight: -80, maxHeight: 80 },
+  'Wild Space': { minRadius: 2200, maxRadius: 2600, minHeight: -90, maxHeight: 90 },
+  'Unknown Regions': { minRadius: 2600, maxRadius: 3000, minHeight: -100, maxHeight: 100 },
+  'Hutt Space': { minRadius: 1600, maxRadius: 1900, minHeight: -75, maxHeight: 75 },
+  'Corporate Sector': { minRadius: 1400, maxRadius: 1700, minHeight: -70, maxHeight: 70 }
 };
 
 // Utility functions for coordinate conversion
@@ -62,40 +66,55 @@ function letterToAngle(letter: string): number {
 }
 
 function numberToRadius(number: number, region: string): number {
-  const baseRadius = (number / 24) * 65000; // 0 to ~65,000 light-years
+  const bounds = REGION_BOUNDS[region] || REGION_BOUNDS['Unknown Regions'];
   
-  // Apply spiral arm clustering
-  const spiralArm = REGION_BOUNDS[region]?.spiralArm || 'outer';
-  const spiralVariation = spiralArm === 'central' ? 0.8 : 
-                         spiralArm === 'inner' ? 0.9 : 
-                         spiralArm === 'middle' ? 1.0 : 1.1;
+  // Normalized position (0-1) with optimization for 1-24 range
+  const normalizedPosition = Math.max(0, Math.min(1, (number - 1) / 23));
   
-  return baseRadius * spiralVariation;
+  // Add spiral clustering effect
+  const clusteredPosition = normalizedPosition + 
+    Math.sin(normalizedPosition * Math.PI * 6) * 0.05;
+  
+  return bounds.minRadius + (bounds.maxRadius - bounds.minRadius) * 
+    Math.max(0, Math.min(1, clusteredPosition));
 }
 
 function calculateHeight(region: string, systemName: string, population?: number, classification?: string): number {
-  const bounds = REGION_BOUNDS[region] || REGION_BOUNDS['Outer Rim'];
+  const bounds = REGION_BOUNDS[region] || REGION_BOUNDS['Unknown Regions'];
   
-  // Base random height within region bounds
+  // Use system name as seed for consistent positioning
   const seed = hashString(systemName + region);
-  const baseHeight = bounds.zRange.min + seededRandom(seed) * (bounds.zRange.max - bounds.zRange.min);
+  const baseRandom = seededRandom(seed);
   
-  // Population influence (more populated = closer to galactic plane)
-  let heightModifier = 1.0;
-  if (population) {
-    if (population > 1e9) heightModifier = 0.3; // Major worlds
-    else if (population > 1e6) heightModifier = 0.6; // Populated worlds
-    else if (population > 1e3) heightModifier = 0.8; // Minor settlements
+  // Base Y position within region height bounds
+  let y = bounds.minHeight + (bounds.maxHeight - bounds.minHeight) * baseRandom;
+  
+  // Adjust Y based on population (more populated = closer to galactic plane)
+  if (population && population > 0) {
+    const populationFactor = Math.min(Math.log10(population) / 12, 1);
+    const centeringEffect = populationFactor * 0.4;
+    y *= (1 - centeringEffect);
   }
   
-  // Classification influence
+  // Adjust Y based on classification
   if (classification) {
-    if (classification.toLowerCase().includes('capital')) heightModifier *= 0.2;
-    else if (classification.toLowerCase().includes('major')) heightModifier *= 0.4;
-    else if (classification.toLowerCase().includes('mining')) heightModifier *= 1.2;
+    const centralizedTypes = ['Capital', 'Trade Hub', 'Industrial', 'Core World'];
+    const frontierTypes = ['Frontier', 'Mining', 'Agricultural', 'Backwater'];
+    
+    if (centralizedTypes.some(type => classification.includes(type))) {
+      y *= 0.6;
+    } else if (frontierTypes.some(type => classification.includes(type))) {
+      y *= 1.4;
+    }
   }
   
-  return baseHeight * heightModifier;
+  // Add controlled noise
+  const noiseSeed = hashString(systemName + 'height');
+  const noise = (seededRandom(noiseSeed) - 0.5) * 0.3;
+  y *= (1 + noise);
+  
+  // Ensure we stay within bounds
+  return Math.max(bounds.minHeight, Math.min(bounds.maxHeight, y));
 }
 
 function convert2DTo3D(
@@ -108,18 +127,15 @@ function convert2DTo3D(
   const parsed = parseGridCoordinates(gridCoordinates);
   if (!parsed) return null;
   
-  // Convert letter to angle (0 to 2π)
+  // Convert 2D coordinates to galactic disk position
   const angle = letterToAngle(parsed.letter);
-  
-  // Convert number to radius (0 to ~65,000 light-years)
   const radius = numberToRadius(parsed.number, region);
+  const height = calculateHeight(region, systemName, population, classification);
   
-  // Calculate X and Y using polar coordinates
-  const x = radius * Math.cos(angle);
-  const y = radius * Math.sin(angle);
-  
-  // Calculate Z based on region and system characteristics
-  const z = calculateHeight(region, systemName, population, classification);
+  // Convert polar coordinates to Cartesian (X, Z for disk plane, Y for height)
+  const x = Math.cos(angle) * radius;
+  const z = Math.sin(angle) * radius;
+  const y = height;
   
   return { x, y, z };
 }

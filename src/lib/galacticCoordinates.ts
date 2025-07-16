@@ -49,15 +49,15 @@ const STAR_WARS_REGIONS: Record<string, RegionConfig> = {
     color: '#FFB6C1', density: 0.3, spiralArm: 3
   },
   'Outer Rim Territories': { 
-    minRadius: 1800, maxRadius: 2000, minHeight: -80, maxHeight: 80,
+    minRadius: 1800, maxRadius: 2200, minHeight: -80, maxHeight: 80,
     color: '#4682B4', density: 0.2, spiralArm: 4
   },
   'Wild Space': { 
-    minRadius: 2000, maxRadius: 2200, minHeight: -90, maxHeight: 90,
+    minRadius: 2200, maxRadius: 2600, minHeight: -90, maxHeight: 90,
     color: '#696969', density: 0.1, spiralArm: undefined
   },
   'Unknown Regions': { 
-    minRadius: 2200, maxRadius: 2400, minHeight: -100, maxHeight: 100,
+    minRadius: 2600, maxRadius: 3000, minHeight: -100, maxHeight: 100,
     color: '#483D8B', density: 0.05, spiralArm: undefined
   },
   'Hutt Space': { 
@@ -278,7 +278,7 @@ export function getAllRegionConfigs(): Record<string, RegionConfig> {
 /**
  * Generate spiral arm coordinates for visualization
  */
-export function generateSpiralArmPoints(armIndex: number, maxRadius: number = 2400): Array<[number, number, number]> {
+export function generateSpiralArmPoints(armIndex: number, maxRadius: number = 3000): Array<[number, number, number]> {
   const points: Array<[number, number, number]> = [];
   const spiralArms = 5;
   const baseAngle = (armIndex * 2 * Math.PI) / spiralArms;

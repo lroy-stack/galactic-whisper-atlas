@@ -3,7 +3,7 @@ import { Text, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 export default function GalaxyGrid() {
-  const gridSize = 2400;
+  const gridSize = 3000;
   const gridSpacing = gridSize / 21; // 21 divisions for numbers 1-21
   const letterSpacing = gridSize / 13; // 13 divisions for letters A-M (covering main galaxy)
 
