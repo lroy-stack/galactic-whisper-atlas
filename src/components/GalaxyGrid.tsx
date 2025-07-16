@@ -1,89 +1,75 @@
-import React from 'react';
-import { Text } from '@react-three/drei';
+import React, { useMemo } from 'react';
+import { Text, Line } from '@react-three/drei';
+import * as THREE from 'three';
 
 export default function GalaxyGrid() {
   const gridSize = 2400;
   const gridSpacing = gridSize / 21; // 21 divisions for numbers 1-21
   const letterSpacing = gridSize / 13; // 13 divisions for letters A-M (covering main galaxy)
 
+  const gridLines = useMemo(() => {
+    const lines = [];
+    
+    // Horizontal lines (letters)
+    for (let i = 0; i < 14; i++) {
+      const letter = String.fromCharCode(65 + i); // A-M
+      const x = -gridSize/2 + i * letterSpacing;
+      
+      lines.push({
+        key: `h-${letter}`,
+        points: [
+          [x, 0, -gridSize/2],
+          [x, 0, gridSize/2]
+        ],
+        label: letter,
+        labelPosition: [x, 20, gridSize/2 + 50] as [number, number, number]
+      });
+    }
+    
+    // Vertical lines (numbers)
+    for (let i = 0; i < 22; i++) {
+      const number = i + 1; // 1-21
+      const z = -gridSize/2 + i * gridSpacing;
+      
+      lines.push({
+        key: `v-${number}`,
+        points: [
+          [-gridSize/2, 0, z],
+          [gridSize/2, 0, z]
+        ],
+        label: number.toString(),
+        labelPosition: [gridSize/2 + 50, 20, z] as [number, number, number]
+      });
+    }
+    
+    return lines;
+  }, [gridSize, gridSpacing, letterSpacing]);
+
   return (
     <>
-      {/* Coordinate grid lines */}
-      <group>
-        {/* Horizontal lines (letters) */}
-        {Array.from({ length: 14 }, (_, i) => {
-          const letter = String.fromCharCode(65 + i); // A-M
-          const y = 0;
-          const x = -gridSize/2 + i * letterSpacing;
+      {/* Grid lines */}
+      {gridLines.map((line) => (
+        <group key={line.key}>
+          <Line
+            points={line.points}
+            color="#444444"
+            transparent
+            opacity={0.3}
+            lineWidth={1}
+          />
           
-          return (
-            <group key={`h-${letter}`}>
-              <line>
-                <bufferGeometry>
-                  <bufferAttribute
-                    attach="attributes-position"
-                    count={2}
-                    array={new Float32Array([
-                      x, y, -gridSize/2,
-                      x, y, gridSize/2
-                    ])}
-                    itemSize={3}
-                  />
-                </bufferGeometry>
-                <lineBasicMaterial color="#444444" transparent opacity={0.3} />
-              </line>
-              
-              {/* Letter labels */}
-              <Text
-                position={[x, 20, gridSize/2 + 50]}
-                fontSize={30}
-                color="#CCCCCC"
-                anchorX="center"
-                anchorY="middle"
-              >
-                {letter}
-              </Text>
-            </group>
-          );
-        })}
-
-        {/* Vertical lines (numbers) */}
-        {Array.from({ length: 22 }, (_, i) => {
-          const number = i + 1; // 1-21
-          const y = 0;
-          const z = -gridSize/2 + i * gridSpacing;
-          
-          return (
-            <group key={`v-${number}`}>
-              <line>
-                <bufferGeometry>
-                  <bufferAttribute
-                    attach="attributes-position"
-                    count={2}
-                    array={new Float32Array([
-                      -gridSize/2, y, z,
-                      gridSize/2, y, z
-                    ])}
-                    itemSize={3}
-                  />
-                </bufferGeometry>
-                <lineBasicMaterial color="#444444" transparent opacity={0.3} />
-              </line>
-              
-              {/* Number labels */}
-              <Text
-                position={[gridSize/2 + 50, 20, z]}
-                fontSize={25}
-                color="#CCCCCC"
-                anchorX="center"
-                anchorY="middle"
-              >
-                {number}
-              </Text>
-            </group>
-          );
-        })}
-      </group>
+          {/* Labels */}
+          <Text
+            position={line.labelPosition}
+            fontSize={line.key.startsWith('h-') ? 30 : 25}
+            color="#CCCCCC"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {line.label}
+          </Text>
+        </group>
+      ))}
 
       {/* Galaxy center marker */}
       <Text
