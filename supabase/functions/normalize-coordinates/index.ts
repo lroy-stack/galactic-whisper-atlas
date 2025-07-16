@@ -1,4 +1,8 @@
-import { corsHeaders } from '../_shared/cors.ts';
+// CORS headers for web app requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 // Configuration
 const BATCH_SIZE = 50; // Same as successful original function
